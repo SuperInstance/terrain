@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Terrain — Visual MUD Explorer</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#0a0a1a;color:#e0e0e0;font-family:system-ui;overflow:hidden;height:100vh}
+#hud{position:fixed;top:0;left:0;right:0;height:40px;background:rgba(10,10,26,0.95);display:flex;align-items:center;padding:0 16px;z-index:100;border-bottom:1px solid #333}
+#hud h1{font-size:0.9em;color:#ffd700;margin-right:16px}
+#hud .loc{color:#888;font-size:0.8em;margin-right:auto}
+#hud .stats{color:#666;font-size:0.7em;margin:0 8px}
+#hud button{background:#ffd700;color:#000;border:none;padding:4px 12px;border-radius:4px;font-weight:bold;cursor:pointer;font-size:0.75em;margin:0 4px}
+#roomList{position:fixed;top:40px;right:0;width:220px;bottom:0;background:rgba(10,10,26,0.95);border-left:1px solid #333;overflow-y:auto;padding:12px;display:none;z-index:100}
+#roomList h3{color:#ffd700;font-size:0.8em;margin-bottom:8px}
+#roomList a{display:block;color:#888;font-size:0.75em;padding:3px 6px;cursor:pointer;border-radius:3px}
+#roomList a:hover{background:#1a1a3a;color:#fff}
+canvas{position:fixed;top:40px;left:0;width:100%;height:calc(100vh - 40px)}
+#story{position:fixed;bottom:0;left:0;right:220px;background:rgba(10,10,26,0.95);border-top:1px solid #333;padding:12px 20px;font-size:0.85em;color:#ccc;min-height:60px;z-index:100;line-height:1.5;display:flex;flex-direction:column;justify-content:center}
+#story .title{color:#ffd700;font-weight:bold;font-size:0.75em;margin-bottom:2px}
+</style></head><body>
+<div id="hud">
+  <h1>🏰 Terrain</h1>
+  <span class="loc" id="roomLabel">harbor</span>
+  <button id="mapBtn">🗺️ Map</button>
+  <button id="refreshBtn">🔄 Refresh</button>
+  <span class="stats" id="objCount"></span>
+  <span class="stats" id="exitCount"></span>
+</div>
+<div id="roomList"><h3>Rooms</h3></div>
+<canvas id="canvas"></canvas>
+<div id="story"><div class="title" id="sceneTitle">harbor</div><div id="sceneText">A bustling harbor where vessels dock and agents arrive...</div></div>
+<script>
+const canvas=document.getElementById('canvas'),ctx=canvas.getContext('2d');
+let W,H;
+function resize(){W=canvas.width=window.innerWidth-220;H=canvas.height=window.innerHeight-100}
+window.addEventListener('resize',resize);resize();
+
+let scene={room:'harbor',description:'',exits:{},objects:[],agents_here:[]};
+let anim=0,rooms=[],sceneCache={};
+
+const sceneThemes={harbor:{bg:'#1a2a3a',fg:'#2a4a6a',accent:'#ffd700'},
+  forge:{bg:'#2a1a0a',fg:'#4a2a0a',accent:'#ff6644'},
+  dojo:{bg:'#1a1a2a',fg:'#2a2a4a',accent:'#44ff88'},
+  arena:{bg:'#2a0a0a',fg:'#4a1a1a',accent:'#ff4444'},
+  archives:{bg:'#1a1a1a',fg:'#2a2a2a',accent:'#44aaff'},
+  'tide-pool':{bg:'#0a1a2a',fg:'#1a3a5a',accent:'#44ffaa'},
+  default:{bg:'#0a0a1a',fg:'#1a1a3a',accent:'#ffd700'}};
+
+function getTheme(r){return sceneThemes[r]||sceneThemes.default}
+
+function drawScene(){
+  anim+=0.02;const t=getTheme(scene.room);
+  ctx.clearRect(0,0,W,H);
+  // Background gradient
+  let g=ctx.createLinearGradient(0,0,0,H);
+  g.addColorStop(0,t.bg);g.addColorStop(1,t.fg);
+  ctx.fillStyle=g;ctx.fillRect(0,0,W,H);
+  // Ground
+  ctx.fillStyle=t.fg+'88';ctx.fillRect(0,H*0.7,W,H*0.3);
+  // Exits as doorways
+  let i=0;const ex=Object.entries(scene.exits||{});
+  ex.forEach(([dir,name])=>{
+    const angles={north:1.5,south:0.5,east:0,west:1,northwest:1.25,northeast:1.75,southwest:0.75,southeast:0.25,up:0,down:3.14};
+    const a=angles[dir]||i*0.8;
+    const dx=Math.cos(a+anim*0.1)*W*0.35+W/2;
+    const dy=Math.sin(a+anim*0.1)*H*0.2+H*0.4;
+    ctx.save();ctx.globalAlpha=0.6+0.1*Math.sin(anim*0.5+i);
+    ctx.strokeStyle=t.accent;ctx.lineWidth=2;
+    ctx.beginPath();ctx.arc(dx,dy,18+4*Math.sin(anim*0.3+i),0,Math.PI*2);ctx.stroke();
+    ctx.fillStyle='#ffffff22';ctx.beginPath();ctx.arc(dx,dy,14,0,Math.PI*2);ctx.fill();
+    ctx.fillStyle=t.accent;ctx.font='8px monospace';ctx.textAlign='center';ctx.fillText(dir,dx,dy+4);
+    ctx.fillStyle='#888';ctx.font='7px sans-serif';ctx.fillText(name,dx,dy+22);
+    ctx.restore();i++;
+  });
+  // Objects as interactive props
+  (scene.objects||[]).forEach((o,j)=>{
+    const ox=(j+1)*W/((scene.objects||[]).length+1),oy=H*0.65;
+    const pulse=6+2*Math.sin(anim*0.7+j);
+    ctx.fillStyle=t.accent+'44';
+    ctx.beginPath();ctx.arc(ox,oy,pulse,0,Math.PI*2);ctx.fill();
+    ctx.fillStyle=t.accent;ctx.font='7px monospace';
+    ctx.textAlign='center';ctx.fillText(o.name||o,ox,oy+18);
+  });
+  // Agents as NPCs
+  (scene.agents_here||[]).forEach((a,j)=>{
+    const ax=(j+1)*W/((scene.agents_here||[]).length+1),ay=H*0.45-10+5*Math.sin(anim*0.5+j);
+    ctx.fillStyle='#ffd70088';ctx.beginPath();ctx.arc(ax,ay,8,0,Math.PI*2);ctx.fill();
+    ctx.fillStyle='#ffd700';ctx.font='7px monospace';ctx.textAlign='center';ctx.fillText(a,ax,ay+22);
+  });
+  // Room name
+  ctx.fillStyle='#ffffff08';ctx.font='80px sans-serif';ctx.textAlign='center';
+  ctx.fillText(scene.room,W/2,H/2+10);
+  requestAnimationFrame(drawScene);
+}
+
+async function loadScene(roomName){
+  try{
+    const r=await fetch(`/api/scene/${roomName}`).then(r=>r.json());
+    scene=r;
+  }catch(e){console.log('scene error',e)}
+  document.getElementById('sceneTitle').textContent=scene.room;
+  document.getElementById('sceneText').textContent=scene.description||'...';
+  document.getElementById('roomLabel').textContent=scene.room;
+  document.getElementById('objCount').textContent=`📦 ${(scene.objects||[]).length} objects`;
+  document.getElementById('exitCount').textContent=`🚪 ${Object.keys(scene.exits||{}).length} exits`;
+}
+
+async function loadRooms(){
+  try{
+    const r=await fetch('/api/room_list').then(r=>r.json());
+    rooms=r.rooms||[];
+  }catch(e){rooms=[]}
+  const rl=document.getElementById('roomList');
+  rl.innerHTML='<h3>Rooms</h3>'+rooms.map(r=>`<a onclick="loadScene('${r}')">🏠 ${r}</a>`).join('');
+}
+
+document.getElementById('mapBtn').onclick=()=>{
+  const rl=document.getElementById('roomList');
+  rl.style.display=rl.style.display==='none'?'block':'none';
+};
+document.getElementById('refreshBtn').onclick=()=>loadScene(scene.room||'harbor');
+loadScene('harbor');loadRooms();drawScene();
+setInterval(()=>loadScene(scene.room||'harbor'),30000);
+</script></body></html>
