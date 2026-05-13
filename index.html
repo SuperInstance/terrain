@@ -1,0 +1,743 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Terrain — 3D MUD Explorer</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#0a0a1a;color:#e0e0e0;font-family:system-ui;overflow:hidden;height:100vh}
+#hud{position:fixed;top:0;left:0;right:0;height:42px;background:rgba(10,10,26,0.95);display:flex;align-items:center;padding:0 16px;z-index:100;border-bottom:1px solid #333;gap:12px}
+#hud h1{font-size:0.9em;color:#ffd700;margin-right:8px;white-space:nowrap}
+#hud .loc{color:#888;font-size:0.8em;margin-right:auto;max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#hud button{background:#1a1a3a;color:#aaa;border:1px solid #333;padding:5px 12px;border-radius:4px;cursor:pointer;font-size:0.75em;font-weight:500}
+#hud button:hover{background:#2a2a4a;color:#fff}
+#hud button.active{background:#ffd700;color:#000;border-color:#ffd700}
+#hud .stats{color:#666;font-size:0.7em;white-space:nowrap}
+#help{position:fixed;bottom:16px;left:16px;background:rgba(10,10,26,0.9);padding:8px 12px;border-radius:6px;font-size:0.7em;color:#666;z-index:100;border:1px solid #333}
+#help span{color:#888}
+#info{position:fixed;bottom:16px;right:16px;background:rgba(10,10,26,0.9);padding:10px 14px;border-radius:6px;font-size:0.75em;color:#aaa;z-index:100;border:1px solid #333;max-width:280px}
+#info h4{color:#ffd700;margin-bottom:6px;font-size:0.8em}
+#info p{margin:3px 0;color:#888;line-height:1.4}
+#tooltip{position:fixed;background:rgba(0,0,0,0.9);padding:8px 12px;border-radius:6px;font-size:0.75em;color:#fff;pointer-events:none;display:none;z-index:200;border:1px solid #ffd700}
+#tooltip .name{color:#ffd700;font-weight:bold;margin-bottom:2px}
+#tooltip .desc{color:#aaa;font-size:0.85em}
+#loading{position:fixed;inset:0;background:#0a0a1a;display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:300;color:#ffd700}
+#loading h2{font-size:1.5em;margin-bottom:12px}
+#loading .spinner{border:3px solid #333;border-top-color:#ffd700;border-radius:50%;width:40px;height:40px;animation:spin 1s linear infinite;margin-bottom:16px}
+@keyframes spin{to{transform:rotate(360deg)}}
+</style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+</head><body>
+<div id="loading"><div class="spinner"></div><h2>🔮 Loading Terrain...</h2></div>
+<div id="hud">
+  <h1>🏰 Terrain</h1>
+  <span class="loc" id="roomLabel">loading...</span>
+  <button id="mapBtn" title="Toggle room map (M)">🗺️ Map</button>
+  <button id="refreshBtn" title="Refresh scene (R)">🔄</button>
+  <button id="wireframeBtn" title="Toggle wireframe (W)">📐</button>
+  <span class="stats" id="objCount"></span>
+  <span class="stats" id="exitCount"></span>
+</div>
+<div id="help"><span>WASD</span> move &nbsp; <span>Mouse</span> look &nbsp; <span>Click</span> exits/objects &nbsp; <span>M</span> map &nbsp; <span>W</span> wireframe</div>
+<div id="info"><h4>Current Room</h4><p id="infoDesc">Loading...</p></div>
+<div id="tooltip"><div class="name"></div><div class="desc"></div></div>
+<script>
+// ============================================================================
+// TERRAIN 3D — Three.js MUD Renderer
+// ============================================================================
+
+let scene, camera, renderer, controls;
+let currentRoom = null;
+let roomObjects = [];
+let exitMarkers = [];
+let agentMarkers = [];
+let raycaster, mouse;
+let isPointerLocked = false;
+
+// Scene state
+const state = {
+    room: 'unknown',
+    theme: { bg: '#0a0a1a', fg: '#1a1a3a', accent: '#ffd700' },
+    objects: [],
+    exits: [],
+    agents: []
+};
+
+// Movement
+const keys = { w: false, a: false, s: false, d: false };
+let yaw = 0, pitch = 0;
+const moveSpeed = 5;
+const lookSpeed = 0.002;
+
+// DOM
+const roomLabel = document.getElementById('roomLabel');
+const objCount = document.getElementById('objCount');
+const exitCount = document.getElementById('exitCount');
+const infoDesc = document.getElementById('infoDesc');
+const tooltip = document.getElementById('tooltip');
+const loading = document.getElementById('loading');
+
+// ============================================================================
+// INITIALIZATION
+// ============================================================================
+
+function init() {
+    // Renderer
+    renderer = new THREE.WebGLRenderer({ antialias: true });
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.shadowMap.enabled = true;
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    document.body.appendChild(renderer.domElement);
+    
+    // Camera
+    camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
+    camera.position.set(0, 2, 8);
+    
+    // Raycaster for interaction
+    raycaster = new THREE.Raycaster();
+    mouse = new THREE.Vector2();
+    
+    // Scene
+    scene = new THREE.Scene();
+    scene.background = new THREE.Color(0x0a0a1a);
+    scene.fog = new THREE.Fog(0x0a0a1a, 20, 50);
+    
+    // Resize
+    window.addEventListener('resize', onResize);
+    
+    // Input
+    document.addEventListener('keydown', onKeyDown);
+    document.addEventListener('keyup', onKeyUp);
+    renderer.domElement.addEventListener('click', onClick);
+    renderer.domElement.addEventListener('mousemove', onMouseMove);
+    document.addEventListener('pointerlockchange', onPointerLockChange);
+    
+    // Start
+    animate();
+    
+    // Load initial room
+    loadRoom('harbor');
+}
+
+// ============================================================================
+// SCENE LOADING
+// ============================================================================
+
+async function loadRoom(roomName) {
+    loading.style.display = 'flex';
+    
+    try {
+        const resp = await fetch(`/scene/${roomName}`);
+        if (!resp.ok) throw new Error('Room not found');
+        
+        const data = await resp.json();
+        buildScene(data);
+        
+        state.room = data.room;
+        state.theme = data.theme || { bg: '#0a0a1a', fg: '#1a1a3a', accent: '#ffd700' };
+        state.objects = data.objects || [];
+        state.exits = data.exits || [];
+        state.agents = data.agents || [];
+        
+        // Update HUD
+        roomLabel.textContent = data.room;
+        objCount.textContent = `📦 ${data.objects?.length || 0}`;
+        exitCount.textContent = `🚪 ${data.exits?.length || 0}`;
+        infoDesc.textContent = data.description || 'No description';
+        
+    } catch (e) {
+        console.error('Failed to load room:', e);
+        // Try default room
+        if (roomName !== 'default') loadRoom('default');
+    }
+    
+    loading.style.display = 'none';
+}
+
+function buildScene(data) {
+    // Clear old objects
+    while (scene.children.length > 0) {
+        scene.remove(scene.children[0]);
+    }
+    roomObjects = [];
+    exitMarkers = [];
+    agentMarkers = [];
+    
+    // Background color
+    const bgColor = new THREE.Color(data.theme?.bg || '#0a0a1a');
+    scene.background = bgColor;
+    scene.fog.color = bgColor;
+    
+    // =========================================================================
+    // FLOOR
+    // =========================================================================
+    const floorGeom = new THREE.PlaneGeometry(20, 20);
+    const floorMat = new THREE.MeshStandardMaterial({
+        color: new THREE.Color(data.theme?.fg || '#1a1a3a'),
+        roughness: 0.8,
+        metalness: 0.1,
+    });
+    const floor = new THREE.Mesh(floorGeom, floorMat);
+    floor.rotation.x = -Math.PI / 2;
+    floor.receiveShadow = true;
+    scene.add(floor);
+    roomObjects.push(floor);
+    
+    // Grid on floor
+    const grid = new THREE.GridHelper(20, 20, 0x333344, 0x222233);
+    grid.position.y = 0.01;
+    scene.add(grid);
+    
+    // =========================================================================
+    // CEILING
+    // =========================================================================
+    const ceilGeom = new THREE.PlaneGeometry(20, 20);
+    const ceilMat = new THREE.MeshStandardMaterial({
+        color: 0x1a1a2a,
+        roughness: 0.9,
+        metalness: 0.0,
+    });
+    const ceiling = new THREE.Mesh(ceilGeom, ceilMat);
+    ceiling.rotation.x = Math.PI / 2;
+    ceiling.position.y = 8;
+    scene.add(ceiling);
+    roomObjects.push(ceiling);
+    
+    // =========================================================================
+    // WALLS (simple placeholder boxes for now)
+    // =========================================================================
+    const wallMat = new THREE.MeshStandardMaterial({
+        color: new THREE.Color(data.theme?.fg || '#1a1a3a'),
+        roughness: 0.9,
+        metalness: 0.0,
+    });
+    
+    // North wall
+    const northWall = new THREE.Mesh(new THREE.BoxGeometry(20, 8, 0.2), wallMat);
+    northWall.position.set(0, 4, -10);
+    scene.add(northWall);
+    roomObjects.push(northWall);
+    
+    // South wall
+    const southWall = new THREE.Mesh(new THREE.BoxGeometry(20, 8, 0.2), wallMat);
+    southWall.position.set(0, 4, 10);
+    scene.add(southWall);
+    roomObjects.push(southWall);
+    
+    // East wall
+    const eastWall = new THREE.Mesh(new THREE.BoxGeometry(0.2, 8, 20), wallMat);
+    eastWall.position.set(10, 4, 0);
+    scene.add(eastWall);
+    roomObjects.push(eastWall);
+    
+    // West wall
+    const westWall = new THREE.Mesh(new THREE.BoxGeometry(0.2, 8, 20), wallMat);
+    westWall.position.set(-10, 4, 0);
+    scene.add(westWall);
+    roomObjects.push(westWall);
+    
+    // =========================================================================
+    // LIGHTS
+    // =========================================================================
+    // Ambient
+    const ambient = new THREE.AmbientLight(0x404060, 0.4);
+    scene.add(ambient);
+    
+    // Main overhead light
+    const mainLight = new THREE.PointLight(
+        new THREE.Color(data.theme?.accent || '#ffd700').getHex(),
+        0.8,
+        30
+    );
+    mainLight.position.set(0, 6, 0);
+    mainLight.castShadow = true;
+    scene.add(mainLight);
+    
+    // Hemisphere for fill
+    const hemi = new THREE.HemisphereLight(0x606080, 0x303040, 0.3);
+    scene.add(hemi);
+    
+    // =========================================================================
+    // EXITS (doorways to other rooms)
+    // =========================================================================
+    (data.exits || []).forEach((exit, i) => {
+        const pos = exit.position || { x: 0, y: 2, z: -9 };
+        const color = new THREE.Color(exit.color || data.theme?.accent || '#ffd700');
+        
+        // Doorway geometry
+        const width = exit.size?.width || 3;
+        const height = exit.size?.height || 4;
+        
+        const frameGeom = new THREE.BoxGeometry(width + 0.4, height + 0.4, 0.3);
+        const frameMat = new THREE.MeshStandardMaterial({
+            color: color,
+            emissive: color,
+            emissiveIntensity: 0.3,
+            metalness: 0.8,
+            roughness: 0.2,
+        });
+        const frame = new THREE.Mesh(frameGeom, frameMat);
+        frame.position.set(pos.x || 0, pos.y || 2, pos.z || -9);
+        frame.userData = { type: 'exit', data: exit };
+        scene.add(frame);
+        exitMarkers.push(frame);
+        roomObjects.push(frame);
+        
+        // Door glow plane
+        const glowGeom = new THREE.PlaneGeometry(width, height);
+        const glowMat = new THREE.MeshBasicMaterial({
+            color: color,
+            transparent: true,
+            opacity: 0.2,
+            side: THREE.DoubleSide,
+        });
+        const glow = new THREE.Mesh(glowGeom, glowMat);
+        glow.position.set(pos.x || 0, pos.y || 2, (pos.z || -9) + 0.2);
+        glow.userData = { type: 'exit', data: exit };
+        scene.add(glow);
+        exitMarkers.push(glow);
+        roomObjects.push(glow);
+        
+        // Label
+        const label = makeTextSprite(exit.direction + ' → ' + exit.target, {
+            fontSize: 14,
+            textColor: '#ffffff',
+            backgroundColor: color.getHex(),
+        });
+        label.position.set(pos.x || 0, (pos.y || 2) + height / 2 + 0.5, pos.z || -9);
+        scene.add(label);
+        roomObjects.push(label);
+    });
+    
+    // =========================================================================
+    // OBJECTS
+    // =========================================================================
+    (data.objects || []).forEach((obj, i) => {
+        const geom = createGeometry(obj.geometry?.type || 'box');
+        const mat = createMaterial(obj.material || {}, obj.color || '#8899aa');
+        
+        const mesh = new THREE.Mesh(geom, mat);
+        mesh.position.set(
+            obj.position?.x || ((i % 5) - 2) * 3,
+            obj.position?.y || (obj.scale?.y || 1) / 2,
+            obj.position?.z || (Math.floor(i / 5)) * 3 - 5
+        );
+        if (obj.scale) {
+            mesh.scale.set(obj.scale.x || 1, obj.scale.y || 1, obj.scale.z || 1);
+        }
+        mesh.castShadow = true;
+        mesh.receiveShadow = true;
+        mesh.userData = { type: 'object', data: obj };
+        
+        scene.add(mesh);
+        roomObjects.push(mesh);
+    });
+    
+    // =========================================================================
+    // AGENTS
+    // =========================================================================
+    (data.agents || []).forEach((agent, i) => {
+        const group = new THREE.Group();
+        
+        // Body
+        const bodyGeom = new THREE.CylinderGeometry(0.3, 0.4, 1.2, 8);
+        const bodyMat = new THREE.MeshStandardMaterial({
+            color: new THREE.Color(agent.color || '#ffd700'),
+            emissive: new THREE.Color(agent.color || '#ffd700'),
+            emissiveIntensity: 0.2,
+            metalness: 0.5,
+            roughness: 0.3,
+        });
+        const body = new THREE.Mesh(bodyGeom, bodyMat);
+        body.position.y = 0.8;
+        group.add(body);
+        
+        // Head
+        const headGeom = new THREE.SphereGeometry(0.25, 8, 8);
+        const head = new THREE.Mesh(headGeom, bodyMat);
+        head.position.y = 1.55;
+        group.add(head);
+        
+        // Glowing aura
+        const auraGeom = new THREE.SphereGeometry(0.6, 8, 8);
+        const auraMat = new THREE.MeshBasicMaterial({
+            color: new THREE.Color(agent.color || '#ffd700'),
+            transparent: true,
+            opacity: 0.15,
+        });
+        const aura = new THREE.Mesh(auraGeom, auraMat);
+        aura.position.y = 1;
+        group.add(aura);
+        
+        group.position.set(
+            agent.position?.x || ((i % 3) - 1) * 4,
+            0,
+            agent.position?.z || Math.floor(i / 3) * 3 - 3
+        );
+        group.userData = { type: 'agent', data: agent };
+        
+        scene.add(group);
+        agentMarkers.push(group);
+        roomObjects.push(group);
+    });
+    
+    // =========================================================================
+    // ROOM NAME WATERMARK
+    // =========================================================================
+    const watermark = makeTextSprite(data.room, {
+        fontSize: 72,
+        textColor: 'rgba(255,255,255,0.05)',
+    });
+    watermark.position.set(0, 4, 0);
+    scene.add(watermark);
+}
+
+// ============================================================================
+// GEOMETRY & MATERIAL HELPERS
+// ============================================================================
+
+function createGeometry(type) {
+    switch (type) {
+        case 'SphereGeometry':
+            return new THREE.SphereGeometry(0.5, 16, 16);
+        case 'CylinderGeometry':
+            return new THREE.CylinderGeometry(0.3, 0.4, 1, 8);
+        case 'ConeGeometry':
+            return new THREE.ConeGeometry(0.4, 1, 8);
+        case 'TorusGeometry':
+            return new THREE.TorusGeometry(0.4, 0.15, 8, 16);
+        case 'PlaneGeometry':
+            return new THREE.PlaneGeometry(1, 1);
+        case 'BoxGeometry':
+        default:
+            return new THREE.BoxGeometry(1, 1, 1);
+    }
+}
+
+function createMaterial(props, colorHex) {
+    const mat = new THREE.MeshStandardMaterial();
+    
+    if (colorHex) {
+        mat.color = new THREE.Color(colorHex);
+    } else if (props.color) {
+        mat.color = new THREE.Color(props.color);
+    }
+    
+    if (props.metalness !== undefined) mat.metalness = props.metalness;
+    if (props.roughness !== undefined) mat.roughness = props.roughness;
+    
+    if (props.emissive) {
+        mat.emissive = new THREE.Color(props.emissive);
+        mat.emissiveIntensity = props.emissiveIntensity || 1.0;
+    }
+    
+    if (props.opacity !== undefined) {
+        mat.transparent = true;
+        mat.opacity = props.opacity;
+    }
+    
+    return mat;
+}
+
+// ============================================================================
+// SPRITE TEXTURES (labels)
+// ============================================================================
+
+function makeTextSprite(text, options = {}) {
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+    
+    const fontSize = options.fontSize || 24;
+    const fontFamily = options.fontFamily || 'monospace';
+    
+    ctx.font = `${fontSize}px ${fontFamily}`;
+    const metrics = ctx.measureText(text);
+    const textWidth = metrics.width + 20;
+    const textHeight = fontSize * 1.4;
+    
+    canvas.width = Math.max(128, textWidth);
+    canvas.height = Math.max(64, textHeight);
+    
+    // Background
+    ctx.fillStyle = options.backgroundColor ? 
+        `#${new THREE.Color(options.backgroundColor).getHexString()}` : 
+        'rgba(0,0,0,0.6)';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    
+    // Text
+    ctx.font = `${fontSize}px ${fontFamily}`;
+    ctx.fillStyle = options.textColor || '#ffffff';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(text, canvas.width / 2, canvas.height / 2);
+    
+    const texture = new THREE.CanvasTexture(canvas);
+    texture.needsUpdate = true;
+    
+    const mat = new THREE.SpriteMaterial({
+        map: texture,
+        transparent: true,
+    });
+    
+    const sprite = new THREE.Sprite(mat);
+    sprite.scale.set(2, 1, 1);
+    
+    return sprite;
+}
+
+// ============================================================================
+// INPUT HANDLERS
+// ============================================================================
+
+function onKeyDown(e) {
+    switch (e.code) {
+        case 'KeyW': keys.w = true; break;
+        case 'KeyA': keys.a = true; break;
+        case 'KeyS': keys.s = true; break;
+        case 'KeyD': keys.d = true; break;
+        case 'KeyM':
+            document.getElementById('mapBtn').click();
+            break;
+        case 'KeyR':
+            loadRoom(state.room);
+            break;
+        case 'KeyF':
+            if (!isPointerLocked) {
+                renderer.domElement.requestPointerLock();
+            }
+            break;
+    }
+}
+
+function onKeyUp(e) {
+    switch (e.code) {
+        case 'KeyW': keys.w = false; break;
+        case 'KeyA': keys.a = false; break;
+        case 'KeyS': keys.s = false; break;
+        case 'KeyD': keys.d = false; break;
+    }
+}
+
+function onClick(e) {
+    if (!isPointerLocked) {
+        renderer.domElement.requestPointerLock();
+        return;
+    }
+    
+    // Raycast to objects/exits
+    raycaster.setFromCamera(new THREE.Vector2(0, 0), camera);
+    const intersects = raycaster.intersectObjects(roomObjects, true);
+    
+    if (intersects.length > 0) {
+        const hit = intersects[0].object;
+        const userData = hit.parent?.userData || hit.userData;
+        
+        if (userData.type === 'exit') {
+            loadRoom(userData.data.target);
+        } else if (userData.type === 'object') {
+            showTooltip(hit, userData.data);
+        }
+    }
+}
+
+function onMouseMove(e) {
+    if (!isPointerLocked) return;
+    
+    yaw -= e.movementX * lookSpeed;
+    pitch -= e.movementY * lookSpeed;
+    pitch = Math.max(-Math.PI / 2 + 0.1, Math.min(Math.PI / 2 - 0.1, pitch));
+    
+    camera.rotation.order = 'YXZ';
+    camera.rotation.y = yaw;
+    camera.rotation.x = pitch;
+}
+
+function onPointerLockChange() {
+    isPointerLocked = document.pointerLockElement === renderer.domElement;
+}
+
+// ============================================================================
+// TOOLTIP
+// ============================================================================
+
+function showTooltip(obj, data) {
+    tooltip.querySelector('.name').textContent = data.name || data.direction || 'Unknown';
+    tooltip.querySelector('.desc').textContent = data.description || (data.target ? `Leads to ${data.target}` : '');
+    
+    tooltip.style.display = 'block';
+    tooltip.style.left = (window.innerWidth / 2 + 20) + 'px';
+    tooltip.style.top = (window.innerHeight / 2 - 20) + 'px';
+    
+    setTimeout(() => { tooltip.style.display = 'none'; }, 3000);
+}
+
+// ============================================================================
+// UPDATE LOOP
+// ============================================================================
+
+function updateMovement(dt) {
+    if (!isPointerLocked) return;
+    
+    const speed = moveSpeed * dt;
+    const dir = new THREE.Vector3();
+    
+    if (keys.w) dir.z -= 1;
+    if (keys.s) dir.z += 1;
+    if (keys.a) dir.x -= 1;
+    if (keys.d) dir.x += 1;
+    
+    if (dir.length() > 0) {
+        dir.normalize();
+        dir.applyAxisAngle(new THREE.Vector3(0, 1, 0), yaw);
+        camera.position.add(dir.multiplyScalar(speed));
+        
+        // Clamp to room bounds
+        camera.position.x = Math.max(-9, Math.min(9, camera.position.x));
+        camera.position.z = Math.max(-9, Math.min(9, camera.position.z));
+    }
+    
+    // Keep at standing height
+    camera.position.y = 2;
+}
+
+function updateAgents(dt) {
+    // Gentle bobbing animation for agents
+    const time = performance.now() * 0.001;
+    agentMarkers.forEach((agent, i) => {
+        agent.position.y = Math.sin(time + i) * 0.05;
+    });
+}
+
+function updateLights() {
+    // Subtle pulsing on exit lights
+    const time = performance.now() * 0.001;
+    exitMarkers.forEach((exit, i) => {
+        if (exit.material?.emissiveIntensity !== undefined) {
+            exit.material.emissiveIntensity = 0.2 + Math.sin(time * 2 + i) * 0.1;
+        }
+    });
+}
+
+// ============================================================================
+// ANIMATION LOOP
+// ============================================================================
+
+let lastTime = 0;
+
+function animate(time = 0) {
+    requestAnimationFrame(animate);
+    
+    const dt = Math.min((time - lastTime) / 1000, 0.1);
+    lastTime = time;
+    
+    updateMovement(dt);
+    updateAgents(dt);
+    updateLights();
+    
+    renderer.render(scene, camera);
+}
+
+// ============================================================================
+// RESIZE
+// ============================================================================
+
+function onResize() {
+    camera.aspect = window.innerWidth / window.innerHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize(window.innerWidth, window.innerHeight);
+}
+
+// ============================================================================
+// BUTTONS
+// ============================================================================
+
+document.getElementById('mapBtn').addEventListener('click', async () => {
+    const btn = document.getElementById('mapBtn');
+    btn.classList.toggle('active');
+    
+    if (btn.classList.contains('active')) {
+        // Fetch all rooms and show as overlay
+        try {
+            const resp = await fetch('/all');
+            const data = await resp.json();
+            showMapOverlay(data);
+        } catch (e) {
+            console.error('Failed to load rooms:', e);
+        }
+    } else {
+        hideMapOverlay();
+    }
+});
+
+document.getElementById('refreshBtn').addEventListener('click', () => {
+    loadRoom(state.room);
+});
+
+document.getElementById('wireframeBtn').addEventListener('click', () => {
+    const btn = document.getElementById('wireframeBtn');
+    btn.classList.toggle('active');
+    
+    roomObjects.forEach(obj => {
+        if (obj.material) {
+            if (Array.isArray(obj.material)) {
+                obj.material.forEach(m => { if (m.wireframe !== undefined) m.wireframe = btn.classList.contains('active'); });
+            } else {
+                obj.material.wireframe = btn.classList.contains('active');
+            }
+        }
+    });
+});
+
+function showMapOverlay(rooms) {
+    const overlay = document.createElement('div');
+    overlay.id = 'mapOverlay';
+    overlay.style.cssText = `
+        position:fixed;inset:0;background:rgba(0,0,0,0.9);z-index:150;
+        display:flex;flex-direction:column;align-items:center;justify-content:center;
+    `;
+    
+    const title = document.createElement('h2');
+    title.textContent = '🗺️ Room Map';
+    title.style.cssText = 'color:#ffd700;font-size:1.5em;margin-bottom:20px';
+    overlay.appendChild(title);
+    
+    const grid = document.createElement('div');
+    grid.style.cssText = 'display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px;max-width:600px;padding:20px';
+    
+    Object.keys(rooms).forEach(roomName => {
+        const btn = document.createElement('button');
+        btn.textContent = roomName;
+        btn.style.cssText = `
+            background:${roomName === state.room ? '#ffd700' : '#1a1a3a'};
+            color:${roomName === state.room ? '#000' : '#aaa'};
+            border:1px solid ${roomName === state.room ? '#ffd700' : '#333'};
+            padding:10px 16px;border-radius:6px;cursor:pointer;font-size:0.85em;
+        `;
+        btn.onclick = () => {
+            hideMapOverlay();
+            document.getElementById('mapBtn').classList.remove('active');
+            loadRoom(roomName);
+        };
+        grid.appendChild(btn);
+    });
+    
+    overlay.appendChild(grid);
+    
+    const closeBtn = document.createElement('button');
+    closeBtn.textContent = 'Close';
+    closeBtn.style.cssText = 'margin-top:20px;background:#333;color:#aaa;border:none;padding:8px 20px;border-radius:4px;cursor:pointer';
+    closeBtn.onclick = hideMapOverlay;
+    overlay.appendChild(closeBtn);
+    
+    document.body.appendChild(overlay);
+}
+
+function hideMapOverlay() {
+    const overlay = document.getElementById('mapOverlay');
+    if (overlay) overlay.remove();
+}
+
+// Start
+init();
+</script></body></html>
