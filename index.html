@@ -116,42 +116,79 @@ function init() {
     // Start
     animate();
     
-    // Load initial room
-    loadRoom('harbor');
+    // Load initial room (try static scene.json first, then HTTP server)
+    loadRoomFromJSON('wheelhouse').catch(() => loadRoomFromServer('wheelhouse'));
 }
 
 // ============================================================================
 // SCENE LOADING
 // ============================================================================
 
-async function loadRoom(roomName) {
-    loading.style.display = 'flex';
-    
-    try {
-        const resp = await fetch(`/scene/${roomName}`);
-        if (!resp.ok) throw new Error('Room not found');
-        
+// ============================================================================
+// SCENE LOADING (static JSON + HTTP server)
+// ============================================================================
+
+let sceneCache = {};
+
+async function loadRoomFromJSON(roomName) {
+    // Load scene.json once and cache all rooms
+    if (Object.keys(sceneCache).length === 0) {
+        const resp = await fetch('scene.json');
+        if (!resp.ok) throw new Error('scene.json not found');
         const data = await resp.json();
-        buildScene(data);
-        
-        state.room = data.room;
-        state.theme = data.theme || { bg: '#0a0a1a', fg: '#1a1a3a', accent: '#ffd700' };
-        state.objects = data.objects || [];
-        state.exits = data.exits || [];
-        state.agents = data.agents || [];
-        
-        // Update HUD
-        roomLabel.textContent = data.room;
-        objCount.textContent = `📦 ${data.objects?.length || 0}`;
-        exitCount.textContent = `🚪 ${data.exits?.length || 0}`;
-        infoDesc.textContent = data.description || 'No description';
-        
-    } catch (e) {
-        console.error('Failed to load room:', e);
-        // Try default room
-        if (roomName !== 'default') loadRoom('default');
+        sceneCache = data.rooms || {};
+        state.exits = data.exits || {};
     }
     
+    const roomData = sceneCache[roomName];
+    if (!roomData) {
+        throw new Error(`Room '${roomName}' not in scene.json`);
+    }
+    
+    buildScene(roomData);
+    state.room = roomData.room;
+    state.theme = roomData.theme || { bg: '#0a0a1a', fg: '#1a1a3a', accent: '#ffd700' };
+    state.objects = roomData.objects || [];
+    state.exits = state.exits || {};
+    state.agents = roomData.agents || [];
+    
+    roomLabel.textContent = roomData.room;
+    objCount.textContent = `📦 ${roomData.objects?.length || 0}`;
+    exitCount.textContent = `🚪 ${roomData.exits?.length || 0}`;
+    infoDesc.textContent = roomData.description || 'No description';
+}
+
+async function loadRoomFromServer(roomName) {
+    const resp = await fetch(`/scene/${roomName}`);
+    if (!resp.ok) throw new Error('Room not found');
+    const data = await resp.json();
+    buildScene(data);
+    state.room = data.room;
+    state.theme = data.theme || { bg: '#0a0a1a', fg: '#1a1a3a', accent: '#ffd700' };
+    state.objects = data.objects || [];
+    state.exits = data.exits || {};
+    state.agents = data.agents || [];
+    
+    roomLabel.textContent = data.room;
+    objCount.textContent = `📦 ${data.objects?.length || 0}`;
+    exitCount.textContent = `🚪 ${data.exits?.length || 0}`;
+    infoDesc.textContent = data.description || 'No description';
+}
+
+async function loadRoom(roomName) {
+    loading.style.display = 'flex';
+    try {
+        // Prefer static JSON file
+        await loadRoomFromJSON(roomName);
+    } catch (jsonErr) {
+        // Fall back to HTTP server
+        try {
+            await loadRoomFromServer(roomName);
+        } catch (serverErr) {
+            console.error('Failed to load room:', serverErr);
+            if (roomName !== 'wheelhouse') loadRoom('wheelhouse');
+        }
+    }
     loading.style.display = 'none';
 }
 
@@ -657,13 +694,26 @@ document.getElementById('mapBtn').addEventListener('click', async () => {
     btn.classList.toggle('active');
     
     if (btn.classList.contains('active')) {
-        // Fetch all rooms and show as overlay
         try {
-            const resp = await fetch('/all');
-            const data = await resp.json();
-            showMapOverlay(data);
+            let rooms;
+            if (Object.keys(sceneCache).length === 0) {
+                // Load scene.json if not cached yet
+                const resp = await fetch('scene.json');
+                const data = await resp.json();
+                sceneCache = data.rooms || {};
+                state.exits = data.exits || {};
+            }
+            rooms = sceneCache;
+            showMapOverlay(rooms);
         } catch (e) {
-            console.error('Failed to load rooms:', e);
+            // Fall back to server
+            try {
+                const resp = await fetch('/all');
+                const data = await resp.json();
+                showMapOverlay(data);
+            } catch (err) {
+                console.error('Failed to load rooms:', err);
+            }
         }
     } else {
         hideMapOverlay();

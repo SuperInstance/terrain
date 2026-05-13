@@ -28,7 +28,7 @@ The compiler maps descriptions to 3D materials:
 - "glow", "neon", "light" → emissive materials
 """
 
-import json, re, os
+import json, re, os, math
 from typing import Dict, List, Optional, Tuple
 from dataclasses import dataclass, field
 
@@ -260,7 +260,11 @@ def parse_mud_file(content: str) -> Tuple[List[RoomDef], Dict[str, ObjectDef]]:
                 if current_section.startswith("Object:"):
                     obj = parse_object_def("\n".join(current_text))
                     objects[obj.name] = obj
+                elif current_section == "room":
+                    room = parse_mud_room("\n".join(current_text))
+                    rooms.append(room)
                 current_text = []
+            current_section = ""
             continue
             
         if line.startswith("Room:"):
@@ -418,7 +422,7 @@ def compile_room(room: RoomDef, objects: Dict[str, ObjectDef] = None) -> Compile
         "geometry": {"type": "PlaneGeometry", "width": room_width, "height": room_depth},
         "material": {**floor_mat, "side": 2},
         "position": {"x": 0, "y": 0, "z": 0},
-        "rotation": {"x": -Math.PI / 2, "y": 0, "z": 0},
+        "rotation": {"x": -math.pi / 2, "y": 0, "z": 0},
         "receiveShadow": True
     }
     
@@ -426,9 +430,9 @@ def compile_room(room: RoomDef, objects: Dict[str, ObjectDef] = None) -> Compile
     walls = []
     wall_configs = [
         {"id": "north", "pos": [0, room_height/2, -room_depth/2], "rot": [0, 0, 0], "w": room_width, "h": room_height},
-        {"id": "south", "pos": [0, room_height/2, room_depth/2], "rot": [0, Math.PI, 0], "w": room_width, "h": room_height},
-        {"id": "east", "pos": [room_width/2, room_height/2, 0], "rot": [0, -Math.PI/2, 0], "w": room_depth, "h": room_height},
-        {"id": "west", "pos": [-room_width/2, room_height/2, 0], "rot": [0, Math.PI/2, 0], "w": room_depth, "h": room_height},
+        {"id": "south", "pos": [0, room_height/2, room_depth/2], "rot": [0, math.pi, 0], "w": room_width, "h": room_height},
+        {"id": "east", "pos": [room_width/2, room_height/2, 0], "rot": [0, -math.pi/2, 0], "w": room_depth, "h": room_height},
+        {"id": "west", "pos": [-room_width/2, room_height/2, 0], "rot": [0, math.pi/2, 0], "w": room_depth, "h": room_height},
     ]
     
     wall_mat = infer_material(room.wall_material)
@@ -447,7 +451,7 @@ def compile_room(room: RoomDef, objects: Dict[str, ObjectDef] = None) -> Compile
         "geometry": {"type": "PlaneGeometry", "width": room_width, "height": room_depth},
         "material": {**wall_mat, "side": 1, "color": "#303040"},
         "position": {"x": 0, "y": room_height, "z": 0},
-        "rotation": {"x": Math.PI / 2, "y": 0, "z": 0},
+        "rotation": {"x": math.pi / 2, "y": 0, "z": 0},
     }
     
     # Build objects
@@ -501,16 +505,56 @@ def compile_room(room: RoomDef, objects: Dict[str, ObjectDef] = None) -> Compile
     
     # Build exits (walkable doorways to other rooms)
     scene_exits = []
-    exit_angles = {"north": 0, "south": Math.PI, "east": -Math.PI/2, "west": Math.PI/2,
-                   "northwest": Math.PI/4, "northeast": -Math.PI/4,
-                   "southwest": 3*Math.PI/4, "southeast": -3*Math.PI/4,
-                   "up": 0, "down": Math.PI}
-    
+    exit_angles = {
+        # Cardinal
+        "north": 0, "south": math.pi, "east": -math.pi/2, "west": math.pi/2,
+        "northwest": math.pi/4, "northeast": -math.pi/4,
+        "southwest": 3*math.pi/4, "southeast": -3*math.pi/4,
+        "up": 0, "down": math.pi,
+        # Boat directions
+        "forward": 0, "fore": 0, "ahead": 0,
+        "aft": math.pi, "aftward": math.pi, "astern": math.pi, "backward": math.pi, "back": math.pi,
+        "port": math.pi/2, "portward": math.pi/2,
+        "starboard": -math.pi/2, "stbd": -math.pi/2,
+        "forward_up": 0, "fore_up": 0,
+        "forward_down": 0, "fore_down": 0,
+        "aft_up": math.pi, "aftward_up": math.pi,
+        "aft_down": math.pi, "aftward_down": math.pi,
+        "in": 0, "out": math.pi,
+        "below": math.pi, "upward": 0,
+    }
+
     exit_positions = {
+        # Cardinal
         "north": [0, 2, -room_depth/2 + 1],
         "south": [0, 2, room_depth/2 - 1],
         "east": [room_width/2 - 1, 2, 0],
         "west": [-room_width/2 + 1, 2, 0],
+        # Boat directions
+        "forward": [0, 2, -room_depth/2 + 1],
+        "fore": [0, 2, -room_depth/2 + 1],
+        "ahead": [0, 2, -room_depth/2 + 1],
+        "aft": [0, 2, room_depth/2 - 1],
+        "aftward": [0, 2, room_depth/2 - 1],
+        "astern": [0, 2, room_depth/2 - 1],
+        "backward": [0, 2, room_depth/2 - 1],
+        "back": [0, 2, room_depth/2 - 1],
+        "port": [-room_width/2 + 1, 2, 0],
+        "portward": [-room_width/2 + 1, 2, 0],
+        "starboard": [room_width/2 - 1, 2, 0],
+        "stbd": [room_width/2 - 1, 2, 0],
+        "forward_up": [0, 2, -room_depth/2 + 1],
+        "fore_up": [0, 2, -room_depth/2 + 1],
+        "forward_down": [0, 2, -room_depth/2 + 1],
+        "fore_down": [0, 2, -room_depth/2 + 1],
+        "aft_up": [0, 2, room_depth/2 - 1],
+        "aftward_up": [0, 2, room_depth/2 - 1],
+        "aft_down": [0, 2, room_depth/2 - 1],
+        "aftward_down": [0, 2, room_depth/2 - 1],
+        "in": [0, 2, 0],
+        "out": [0, 2, 0],
+        "below": [0, 2, 0],
+        "upward": [0, 2, 0],
     }
     
     for direction, target_room in room.exits.items():
@@ -630,45 +674,106 @@ class TerrainCore:
         return {name: self.compile(name) for name in self.room_map}
 
 # ============================================================================
+# CLI + MAIN
+# ============================================================================
+
+def generate_scene(room: RoomDef, objects: Dict[str, ObjectDef] = None) -> Dict:
+    """Generate scene dict from a RoomDef (exported API)."""
+    scene = compile_room(room, objects)
+    return compile_to_json(scene)
+
+def generate_all_scenes(rooms: List[RoomDef], objects: Dict[str, ObjectDef] = None) -> Dict[str, Dict]:
+    """Generate all room scenes as a dict keyed by room name."""
+    return {r.name: generate_scene(r, objects) for r in rooms}
+
+def main():
+    """CLI entry point: parse MUD file and output scene.json."""
+    import argparse
+    parser = argparse.ArgumentParser(description='MUD to Three.js scene compiler')
+    parser.add_argument('mud_file', help='MUD rooms file')
+    parser.add_argument('-o', '--output', default='scene.json', help='Output JSON file')
+    parser.add_argument('-r', '--room', help='Compile single room only')
+    args = parser.parse_args()
+
+    rooms, objects = load_mud_file(args.mud_file)
+    print(f"Loaded {len(rooms)} rooms, {len(objects)} objects from {args.mud_file}")
+
+    if args.room:
+        scenes = {args.room: None}
+        for r in rooms:
+            if r.name == args.room:
+                scenes[args.room] = generate_scene(r, objects)
+                break
+        if scenes[args.room] is None:
+            print(f"Room '{args.room}' not found. Available: {[r.name for r in rooms]}")
+            return
+    else:
+        scenes = generate_all_scenes(rooms, objects)
+
+    output = {
+        'meta': {
+            'source': args.mud_file,
+            'roomCount': len(scenes),
+        },
+        'rooms': scenes,
+        'exits': {},  # exit graph for navigation
+    }
+
+
+    # Build exit graph
+    for r in rooms:
+        output['exits'][r.name] = {
+            direction: target for direction, target in r.exits.items()
+        }
+
+    with open(args.output, 'w') as f:
+        json.dump(output, f, indent=2)
+    print(f"Wrote {args.output} with {len(scenes)} room scenes")
+
+# ============================================================================
 # STANDALONE SERVER
 # ============================================================================
 
 if __name__ == "__main__":
-    import http.server
-    
-    PORT = 4072
-    MUD_FILE = os.path.join(os.path.dirname(__file__), "rooms.mud")
-    
-    class TerrainCoreHandler(http.server.BaseHTTPRequestHandler):
-        compiler = TerrainCore(MUD_FILE if os.path.exists(MUD_FILE) else None)
-        
-        def _json(self, d, code=200):
-            self.send_response(code)
-            self.send_header("Content-Type", "application/json")
-            self.send_header("Access-Control-Allow-Origin", "*")
-            self.end_headers()
-            self.wfile.write(json.dumps(d).encode())
-        
-        def do_GET(self):
-            p = self.path
-            if p == "/":
-                self._json({"status": "terrain_core", "rooms": self.compiler.list_rooms()})
-            elif p == "/rooms":
-                self._json({"rooms": self.compiler.list_rooms()})
-            elif p.startswith("/scene/"):
-                room_name = p.split("/scene/")[1]
-                scene = self.compiler.compile(room_name)
-                if scene:
-                    self._json(scene)
+    import sys
+    if len(sys.argv) > 1 and sys.argv[1] not in ('--server', 'server'):
+        main()
+    else:
+        import http.server
+
+        PORT = 4072
+        MUD_FILE = os.path.join(os.path.dirname(__file__), "rooms.mud")
+
+        class TerrainCoreHandler(http.server.BaseHTTPRequestHandler):
+            compiler = TerrainCore(MUD_FILE if os.path.exists(MUD_FILE) else None)
+
+            def _json(self, d, code=200):
+                self.send_response(code)
+                self.send_header("Content-Type", "application/json")
+                self.send_header("Access-Control-Allow-Origin", "*")
+                self.end_headers()
+                self.wfile.write(json.dumps(d).encode())
+
+            def do_GET(self):
+                p = self.path
+                if p == "/":
+                    self._json({"status": "terrain_core", "rooms": self.compiler.list_rooms()})
+                elif p == "/rooms":
+                    self._json({"rooms": self.compiler.list_rooms()})
+                elif p.startswith("/scene/"):
+                    room_name = p.split("/scene/")[1]
+                    scene = self.compiler.compile(room_name)
+                    if scene:
+                        self._json(scene)
+                    else:
+                        self._json({"error": "room not found"}, 404)
+                elif p == "/all":
+                    self._json(self.compiler.compile_all())
                 else:
-                    self._json({"error": "room not found"}, 404)
-            elif p == "/all":
-                self._json(self.compiler.compile_all())
-            else:
-                self.send_error(404)
-    
-    print(f"🔮 Terrain Core compiler running on port {PORT}")
-    print(f"   MUD file: {MUD_FILE}")
-    print(f"   API: http://localhost:{PORT}/scene/{room_name}")
-    print(f"   All rooms: http://localhost:{PORT}/all")
-    http.server.HTTPServer(("0.0.0.0", PORT), TerrainCoreHandler).serve_forever()
+                    self.send_error(404)
+
+        print(f"🔮 Terrain Core compiler running on port {PORT}")
+        print(f"   MUD file: {MUD_FILE}")
+        print(f"   API: http://localhost:{PORT}/scene/{{room_name}}")
+        print(f"   All rooms: http://localhost:{PORT}/all")
+        http.server.HTTPServer(("0.0.0.0", PORT), TerrainCoreHandler).serve_forever()

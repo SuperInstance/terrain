@@ -1,0 +1,2191 @@
+{
+  "meta": {
+    "source": "rooms.mud",
+    "roomCount": 5
+  },
+  "rooms": {
+    "wheelhouse": {
+      "room": "wheelhouse",
+      "description": "The wheelhouse is the nerve center of the vessel. Navigation electronics line the console in careful rows. A magnetic compass sits port of the helm. Radar and chartplotter displays cast pale light across polished teak trim. The large windows offer 270-degree visibility over the bow and decks.",
+      "theme": {
+        "bg": "#0a1a2a",
+        "fg": "#1a3a4a",
+        "accent": "#44ffff"
+      },
+      "floor": {
+        "type": "mesh",
+        "geometry": {
+          "type": "PlaneGeometry",
+          "width": 20,
+          "height": 20
+        },
+        "material": {
+          "color": "#8b6914",
+          "metalness": 0.0,
+          "roughness": 0.8,
+          "side": 2
+        },
+        "position": {
+          "x": 0,
+          "y": 0,
+          "z": 0
+        },
+        "rotation": {
+          "x": -1.5707963267948966,
+          "y": 0,
+          "z": 0
+        },
+        "receiveShadow": true
+      },
+      "walls": [
+        {
+          "type": "mesh",
+          "geometry": {
+            "type": "PlaneGeometry",
+            "width": 20,
+            "height": 8
+          },
+          "material": {
+            "color": "#6a6a6a",
+            "metalness": 0.0,
+            "roughness": 0.9,
+            "side": 0
+          },
+          "position": {
+            "x": 0,
+            "y": 4.0,
+            "z": -10.0
+          },
+          "rotation": {
+            "x": 0,
+            "y": 0,
+            "z": 0
+          }
+        },
+        {
+          "type": "mesh",
+          "geometry": {
+            "type": "PlaneGeometry",
+            "width": 20,
+            "height": 8
+          },
+          "material": {
+            "color": "#6a6a6a",
+            "metalness": 0.0,
+            "roughness": 0.9,
+            "side": 0
+          },
+          "position": {
+            "x": 0,
+            "y": 4.0,
+            "z": 10.0
+          },
+          "rotation": {
+            "x": 0,
+            "y": 3.141592653589793,
+            "z": 0
+          }
+        },
+        {
+          "type": "mesh",
+          "geometry": {
+            "type": "PlaneGeometry",
+            "width": 20,
+            "height": 8
+          },
+          "material": {
+            "color": "#6a6a6a",
+            "metalness": 0.0,
+            "roughness": 0.9,
+            "side": 0
+          },
+          "position": {
+            "x": 10.0,
+            "y": 4.0,
+            "z": 0
+          },
+          "rotation": {
+            "x": 0,
+            "y": -1.5707963267948966,
+            "z": 0
+          }
+        },
+        {
+          "type": "mesh",
+          "geometry": {
+            "type": "PlaneGeometry",
+            "width": 20,
+            "height": 8
+          },
+          "material": {
+            "color": "#6a6a6a",
+            "metalness": 0.0,
+            "roughness": 0.9,
+            "side": 0
+          },
+          "position": {
+            "x": -10.0,
+            "y": 4.0,
+            "z": 0
+          },
+          "rotation": {
+            "x": 0,
+            "y": 1.5707963267948966,
+            "z": 0
+          }
+        }
+      ],
+      "ceiling": {
+        "type": "mesh",
+        "geometry": {
+          "type": "PlaneGeometry",
+          "width": 20,
+          "height": 20
+        },
+        "material": {
+          "color": "#303040",
+          "metalness": 0.0,
+          "roughness": 0.9,
+          "side": 1
+        },
+        "position": {
+          "x": 0,
+          "y": 8,
+          "z": 0
+        },
+        "rotation": {
+          "x": 1.5707963267948966,
+          "y": 0,
+          "z": 0
+        }
+      },
+      "objects": [
+        {
+          "type": "mesh",
+          "name": "helm_wheel",
+          "description": "Polished mahogany helm wheel, eight spokes, brass hub gleaming.",
+          "geometry": {
+            "type": "TorusGeometry"
+          },
+          "material": {
+            "color": "#8b6914",
+            "metalness": 0.0,
+            "roughness": 0.8
+          },
+          "scale": {
+            "x": 1.5,
+            "y": 1.5,
+            "z": 1.5
+          },
+          "position": {
+            "x": -6,
+            "y": 0.75,
+            "z": -5
+          }
+        },
+        {
+          "type": "mesh",
+          "name": "radar_display",
+          "description": "Maritime radar display, phosphor green sweep showing targets.",
+          "geometry": {
+            "type": "BoxGeometry"
+          },
+          "material": {
+            "color": "#1a2a3a",
+            "metalness": 0.9,
+            "roughness": 0.2,
+            "emissive": "#44aaff",
+            "emissiveIntensity": 1.0
+          },
+          "scale": {
+            "x": 1.0,
+            "y": 1.0,
+            "z": 1.0
+          },
+          "position": {
+            "x": -3,
+            "y": 0.5,
+            "z": -5
+          }
+        },
+        {
+          "type": "mesh",
+          "name": "compass_rose",
+          "description": "Ship's compass in brass binnacle, gimbaled, eight cardinal points marked.",
+          "geometry": {
+            "type": "PlaneGeometry"
+          },
+          "material": {
+            "color": "#c9a227",
+            "metalness": 0.85,
+            "roughness": 0.2
+          },
+          "scale": {
+            "x": 1.0,
+            "y": 1.0,
+            "z": 1.0
+          },
+          "position": {
+            "x": 0,
+            "y": 0.5,
+            "z": -5
+          }
+        },
+        {
+          "type": "mesh",
+          "name": "nav_charts",
+          "description": "Chartplotter screen showing vessel position on nautical charts.",
+          "geometry": {
+            "type": "BoxGeometry"
+          },
+          "material": {
+            "color": "#1a3a2a",
+            "metalness": 0.9,
+            "roughness": 0.2,
+            "emissive": "#44ff88",
+            "emissiveIntensity": 1.0
+          },
+          "scale": {
+            "x": 0.5,
+            "y": 0.5,
+            "z": 0.5
+          },
+          "position": {
+            "x": 3,
+            "y": 0.25,
+            "z": -5
+          }
+        },
+        {
+          "type": "mesh",
+          "name": "radio_console",
+          "description": "VHF radio console, channel 16 guarded, hailer and foghorn buttons.",
+          "geometry": {
+            "type": "BoxGeometry"
+          },
+          "material": {
+            "color": "#2a2a2a",
+            "metalness": 0.9,
+            "roughness": 0.2,
+            "emissive": "#446688",
+            "emissiveIntensity": 1.0
+          },
+          "scale": {
+            "x": 1.0,
+            "y": 1.0,
+            "z": 1.0
+          },
+          "position": {
+            "x": 6,
+            "y": 0.5,
+            "z": -5
+          }
+        },
+        {
+          "type": "mesh",
+          "name": "gpsReceiver",
+          "description": "GPS receiver with WAAS correction, displays lat/lon and COG.",
+          "geometry": {
+            "type": "BoxGeometry"
+          },
+          "material": {
+            "color": "#1a1a1a",
+            "metalness": 0.9,
+            "roughness": 0.2
+          },
+          "scale": {
+            "x": 0.5,
+            "y": 0.5,
+            "z": 0.5
+          },
+          "position": {
+            "x": -6,
+            "y": 0.25,
+            "z": -2
+          }
+        },
+        {
+          "type": "mesh",
+          "name": "spotlight_control",
+          "description": "Remote spotlight control, joystick for pan and tilt.",
+          "geometry": {
+            "type": "BoxGeometry"
+          },
+          "material": {
+            "color": "#333333",
+            "metalness": 0.9,
+            "roughness": 0.2
+          },
+          "scale": {
+            "x": 0.5,
+            "y": 0.5,
+            "z": 0.5
+          },
+          "position": {
+            "x": -3,
+            "y": 0.25,
+            "z": -2
+          }
+        }
+      ],
+      "agents": [
+        {
+          "type": "agent",
+          "name": "captain",
+          "color": "#ffd700",
+          "position": {
+            "x": -4,
+            "y": 1.5,
+            "z": -3
+          },
+          "scale": {
+            "x": 0.8,
+            "y": 1.8,
+            "z": 0.8
+          }
+        }
+      ],
+      "exits": [
+        {
+          "type": "exit",
+          "direction": "aft",
+          "target": "aft_cockpit",
+          "position": {
+            "x": 0,
+            "y": 2,
+            "z": 9.0
+          },
+          "rotation": {
+            "y": 3.141592653589793
+          },
+          "size": {
+            "width": 3,
+            "height": 4
+          },
+          "color": "#44ffff",
+          "glow": true
+        },
+        {
+          "type": "exit",
+          "direction": "down",
+          "target": "galley",
+          "position": {
+            "x": 0,
+            "y": 2,
+            "z": 0
+          },
+          "rotation": {
+            "y": 3.141592653589793
+          },
+          "size": {
+            "width": 3,
+            "height": 4
+          },
+          "color": "#44ffff",
+          "glow": true
+        }
+      ],
+      "lights": [
+        {
+          "type": "ambient",
+          "color": "#102030",
+          "intensity": 0.4
+        },
+        {
+          "type": "point",
+          "color": "#44ffff",
+          "intensity": 0.8,
+          "position": {
+            "x": 0,
+            "y": 6,
+            "z": 0
+          },
+          "distance": 30
+        },
+        {
+          "type": "point",
+          "color": "#44ffff",
+          "intensity": 0.3,
+          "position": {
+            "x": 0,
+            "y": 2,
+            "z": 9.0
+          },
+          "distance": 10
+        },
+        {
+          "type": "point",
+          "color": "#44ffff",
+          "intensity": 0.3,
+          "position": {
+            "x": 0,
+            "y": 2,
+            "z": 0
+          },
+          "distance": 10
+        }
+      ],
+      "camera": {
+        "position": {
+          "x": 0,
+          "y": 4,
+          "z": 8
+        },
+        "lookAt": {
+          "x": 0,
+          "y": 1,
+          "z": 0
+        },
+        "fov": 60
+      }
+    },
+    "galley": {
+      "room": "galley",
+      "description": "The galley is compact but efficient. A small propane stove sits beneath timber cabinets. The sink pumps seawater or fresh depending on the valve setting. Teak fiddled benches line the table where crew take meals. Through the porthole, grey sky and sea blur together.",
+      "theme": {
+        "bg": "#0a1a2a",
+        "fg": "#1a3a4a",
+        "accent": "#44ffff"
+      },
+      "floor": {
+        "type": "mesh",
+        "geometry": {
+          "type": "PlaneGeometry",
+          "width": 20,
+          "height": 20
+        },
+        "material": {
+          "color": "#8b6914",
+          "metalness": 0.0,
+          "roughness": 0.8,
+          "side": 2
+        },
+        "position": {
+          "x": 0,
+          "y": 0,
+          "z": 0
+        },
+        "rotation": {
+          "x": -1.5707963267948966,
+          "y": 0,
+          "z": 0
+        },
+        "receiveShadow": true
+      },
+      "walls": [
+        {
+          "type": "mesh",
+          "geometry": {
+            "type": "PlaneGeometry",
+            "width": 20,
+            "height": 8
+          },
+          "material": {
+            "color": "#6a6a6a",
+            "metalness": 0.0,
+            "roughness": 0.9,
+            "side": 0
+          },
+          "position": {
+            "x": 0,
+            "y": 4.0,
+            "z": -10.0
+          },
+          "rotation": {
+            "x": 0,
+            "y": 0,
+            "z": 0
+          }
+        },
+        {
+          "type": "mesh",
+          "geometry": {
+            "type": "PlaneGeometry",
+            "width": 20,
+            "height": 8
+          },
+          "material": {
+            "color": "#6a6a6a",
+            "metalness": 0.0,
+            "roughness": 0.9,
+            "side": 0
+          },
+          "position": {
+            "x": 0,
+            "y": 4.0,
+            "z": 10.0
+          },
+          "rotation": {
+            "x": 0,
+            "y": 3.141592653589793,
+            "z": 0
+          }
+        },
+        {
+          "type": "mesh",
+          "geometry": {
+            "type": "PlaneGeometry",
+            "width": 20,
+            "height": 8
+          },
+          "material": {
+            "color": "#6a6a6a",
+            "metalness": 0.0,
+            "roughness": 0.9,
+            "side": 0
+          },
+          "position": {
+            "x": 10.0,
+            "y": 4.0,
+            "z": 0
+          },
+          "rotation": {
+            "x": 0,
+            "y": -1.5707963267948966,
+            "z": 0
+          }
+        },
+        {
+          "type": "mesh",
+          "geometry": {
+            "type": "PlaneGeometry",
+            "width": 20,
+            "height": 8
+          },
+          "material": {
+            "color": "#6a6a6a",
+            "metalness": 0.0,
+            "roughness": 0.9,
+            "side": 0
+          },
+          "position": {
+            "x": -10.0,
+            "y": 4.0,
+            "z": 0
+          },
+          "rotation": {
+            "x": 0,
+            "y": 1.5707963267948966,
+            "z": 0
+          }
+        }
+      ],
+      "ceiling": {
+        "type": "mesh",
+        "geometry": {
+          "type": "PlaneGeometry",
+          "width": 20,
+          "height": 20
+        },
+        "material": {
+          "color": "#303040",
+          "metalness": 0.0,
+          "roughness": 0.9,
+          "side": 1
+        },
+        "position": {
+          "x": 0,
+          "y": 8,
+          "z": 0
+        },
+        "rotation": {
+          "x": 1.5707963267948966,
+          "y": 0,
+          "z": 0
+        }
+      },
+      "objects": [
+        {
+          "type": "mesh",
+          "name": "propane_stove",
+          "description": "Two-burner propane stove, gimballed for sea angle, broiler below.",
+          "geometry": {
+            "type": "BoxGeometry"
+          },
+          "material": {
+            "color": "#888888",
+            "metalness": 0.9,
+            "roughness": 0.2
+          },
+          "scale": {
+            "x": 1.0,
+            "y": 1.0,
+            "z": 1.0
+          },
+          "position": {
+            "x": -6,
+            "y": 0.5,
+            "z": -5
+          }
+        },
+        {
+          "type": "mesh",
+          "name": "sink_pump",
+          "description": "Manual pump sink, lever action, seawater or fresh water selectable.",
+          "geometry": {
+            "type": "CylinderGeometry"
+          },
+          "material": {
+            "color": "#666666",
+            "metalness": 0.9,
+            "roughness": 0.2
+          },
+          "scale": {
+            "x": 0.5,
+            "y": 0.5,
+            "z": 0.5
+          },
+          "position": {
+            "x": -3,
+            "y": 0.25,
+            "z": -5
+          }
+        },
+        {
+          "type": "mesh",
+          "name": "galley_table",
+          "description": "Teak fiddled table, benches each side, secured for sea conditions.",
+          "geometry": {
+            "type": "BoxGeometry"
+          },
+          "material": {
+            "color": "#6b4423",
+            "metalness": 0.0,
+            "roughness": 0.7
+          },
+          "scale": {
+            "x": 1.5,
+            "y": 1.5,
+            "z": 1.5
+          },
+          "position": {
+            "x": 0,
+            "y": 0.75,
+            "z": -5
+          }
+        },
+        {
+          "type": "mesh",
+          "name": "icebox",
+          "description": "Top-opening icebox, baffled liner, drains overboard.",
+          "geometry": {
+            "type": "BoxGeometry"
+          },
+          "material": {
+            "color": "#aaaaaa",
+            "metalness": 0.9,
+            "roughness": 0.2
+          },
+          "scale": {
+            "x": 1.0,
+            "y": 1.0,
+            "z": 1.0
+          },
+          "position": {
+            "x": 3,
+            "y": 0.5,
+            "z": -5
+          }
+        },
+        {
+          "type": "mesh",
+          "name": "water_tank",
+          "description": "Fresh water tank, 200 liter capacity, gauge visible through sight tube.",
+          "geometry": {
+            "type": "CylinderGeometry"
+          },
+          "material": {
+            "color": "#aaaaaa",
+            "metalness": 0.9,
+            "roughness": 0.2
+          },
+          "scale": {
+            "x": 1.5,
+            "y": 1.5,
+            "z": 1.5
+          },
+          "position": {
+            "x": 6,
+            "y": 0.75,
+            "z": -5
+          }
+        },
+        {
+          "type": "mesh",
+          "name": "coffee_maker",
+          "description": "Simple drip coffee maker, 12V powered, secured to counter.",
+          "geometry": {
+            "type": "BoxGeometry"
+          },
+          "material": {
+            "color": "#222222",
+            "metalness": 0.9,
+            "roughness": 0.2
+          },
+          "scale": {
+            "x": 0.5,
+            "y": 0.5,
+            "z": 0.5
+          },
+          "position": {
+            "x": -6,
+            "y": 0.25,
+            "z": -2
+          }
+        }
+      ],
+      "agents": [
+        {
+          "type": "agent",
+          "name": "none",
+          "color": "#ffd700",
+          "position": {
+            "x": -4,
+            "y": 1.5,
+            "z": -3
+          },
+          "scale": {
+            "x": 0.8,
+            "y": 1.8,
+            "z": 0.8
+          }
+        }
+      ],
+      "exits": [
+        {
+          "type": "exit",
+          "direction": "up",
+          "target": "wheelhouse",
+          "position": {
+            "x": 0,
+            "y": 2,
+            "z": 0
+          },
+          "rotation": {
+            "y": 0
+          },
+          "size": {
+            "width": 3,
+            "height": 4
+          },
+          "color": "#44ffff",
+          "glow": true
+        },
+        {
+          "type": "exit",
+          "direction": "aft",
+          "target": "aft_cockpit",
+          "position": {
+            "x": 0,
+            "y": 2,
+            "z": 9.0
+          },
+          "rotation": {
+            "y": 3.141592653589793
+          },
+          "size": {
+            "width": 3,
+            "height": 4
+          },
+          "color": "#44ffff",
+          "glow": true
+        }
+      ],
+      "lights": [
+        {
+          "type": "ambient",
+          "color": "#102030",
+          "intensity": 0.4
+        },
+        {
+          "type": "point",
+          "color": "#44ffff",
+          "intensity": 0.8,
+          "position": {
+            "x": 0,
+            "y": 6,
+            "z": 0
+          },
+          "distance": 30
+        },
+        {
+          "type": "point",
+          "color": "#44ffff",
+          "intensity": 0.3,
+          "position": {
+            "x": 0,
+            "y": 2,
+            "z": 0
+          },
+          "distance": 10
+        },
+        {
+          "type": "point",
+          "color": "#44ffff",
+          "intensity": 0.3,
+          "position": {
+            "x": 0,
+            "y": 2,
+            "z": 9.0
+          },
+          "distance": 10
+        }
+      ],
+      "camera": {
+        "position": {
+          "x": 0,
+          "y": 4,
+          "z": 8
+        },
+        "lookAt": {
+          "x": 0,
+          "y": 1,
+          "z": 0
+        },
+        "fov": 60
+      }
+    },
+    "foredeck": {
+      "room": "foredeck",
+      "description": "The foredeck is the business end of the boat. Reinforced deck plating bears the anchor chain and rope bins. Safety rails line the gunwales. The windlass handles anchor duties while bait tanks murmur with circulating seawater. Salt crusts the hawse pipes where anchor rode runs.",
+      "theme": {
+        "bg": "#0a2a3a",
+        "fg": "#1a4a5a",
+        "accent": "#44ffaa"
+      },
+      "floor": {
+        "type": "mesh",
+        "geometry": {
+          "type": "PlaneGeometry",
+          "width": 20,
+          "height": 20
+        },
+        "material": {
+          "color": "#7a5c3a",
+          "metalness": 0.0,
+          "roughness": 0.85,
+          "side": 2
+        },
+        "position": {
+          "x": 0,
+          "y": 0,
+          "z": 0
+        },
+        "rotation": {
+          "x": -1.5707963267948966,
+          "y": 0,
+          "z": 0
+        },
+        "receiveShadow": true
+      },
+      "walls": [
+        {
+          "type": "mesh",
+          "geometry": {
+            "type": "PlaneGeometry",
+            "width": 20,
+            "height": 8
+          },
+          "material": {
+            "color": "#6a6a6a",
+            "metalness": 0.0,
+            "roughness": 0.9,
+            "side": 0
+          },
+          "position": {
+            "x": 0,
+            "y": 4.0,
+            "z": -10.0
+          },
+          "rotation": {
+            "x": 0,
+            "y": 0,
+            "z": 0
+          }
+        },
+        {
+          "type": "mesh",
+          "geometry": {
+            "type": "PlaneGeometry",
+            "width": 20,
+            "height": 8
+          },
+          "material": {
+            "color": "#6a6a6a",
+            "metalness": 0.0,
+            "roughness": 0.9,
+            "side": 0
+          },
+          "position": {
+            "x": 0,
+            "y": 4.0,
+            "z": 10.0
+          },
+          "rotation": {
+            "x": 0,
+            "y": 3.141592653589793,
+            "z": 0
+          }
+        },
+        {
+          "type": "mesh",
+          "geometry": {
+            "type": "PlaneGeometry",
+            "width": 20,
+            "height": 8
+          },
+          "material": {
+            "color": "#6a6a6a",
+            "metalness": 0.0,
+            "roughness": 0.9,
+            "side": 0
+          },
+          "position": {
+            "x": 10.0,
+            "y": 4.0,
+            "z": 0
+          },
+          "rotation": {
+            "x": 0,
+            "y": -1.5707963267948966,
+            "z": 0
+          }
+        },
+        {
+          "type": "mesh",
+          "geometry": {
+            "type": "PlaneGeometry",
+            "width": 20,
+            "height": 8
+          },
+          "material": {
+            "color": "#6a6a6a",
+            "metalness": 0.0,
+            "roughness": 0.9,
+            "side": 0
+          },
+          "position": {
+            "x": -10.0,
+            "y": 4.0,
+            "z": 0
+          },
+          "rotation": {
+            "x": 0,
+            "y": 1.5707963267948966,
+            "z": 0
+          }
+        }
+      ],
+      "ceiling": {
+        "type": "mesh",
+        "geometry": {
+          "type": "PlaneGeometry",
+          "width": 20,
+          "height": 20
+        },
+        "material": {
+          "color": "#303040",
+          "metalness": 0.0,
+          "roughness": 0.9,
+          "side": 1
+        },
+        "position": {
+          "x": 0,
+          "y": 8,
+          "z": 0
+        },
+        "rotation": {
+          "x": 1.5707963267948966,
+          "y": 0,
+          "z": 0
+        }
+      },
+      "objects": [
+        {
+          "type": "mesh",
+          "name": "windlass",
+          "description": "Anchor windlass, bronze drum, chain gypsy, foot switch controls.",
+          "geometry": {
+            "type": "CylinderGeometry"
+          },
+          "material": {
+            "color": "#555555",
+            "metalness": 0.9,
+            "roughness": 0.2
+          },
+          "scale": {
+            "x": 1.5,
+            "y": 1.5,
+            "z": 1.5
+          },
+          "position": {
+            "x": -6,
+            "y": 0.75,
+            "z": -5
+          }
+        },
+        {
+          "type": "mesh",
+          "name": "anchor_chain",
+          "description": "Galvanized anchor chain, short link, marked every fathom.",
+          "geometry": {
+            "type": "CylinderGeometry"
+          },
+          "material": {
+            "color": "#445566",
+            "metalness": 0.85,
+            "roughness": 0.3
+          },
+          "scale": {
+            "x": 2.5,
+            "y": 2.5,
+            "z": 2.5
+          },
+          "position": {
+            "x": -3,
+            "y": 1.25,
+            "z": -5
+          }
+        },
+        {
+          "type": "mesh",
+          "name": "bait_tank",
+          "description": "Live bait tank with circulating seawater pump, hinged lid.",
+          "geometry": {
+            "type": "BoxGeometry"
+          },
+          "material": {
+            "color": "#4488aa",
+            "metalness": 0.9,
+            "roughness": 0.2
+          },
+          "scale": {
+            "x": 1.5,
+            "y": 1.5,
+            "z": 1.5
+          },
+          "position": {
+            "x": 0,
+            "y": 0.75,
+            "z": -5
+          }
+        },
+        {
+          "type": "mesh",
+          "name": "rope_bin",
+          "description": "Rope bin with braided nylon line, different sizes and lengths.",
+          "geometry": {
+            "type": "BoxGeometry"
+          },
+          "material": {
+            "color": "#6a5a4a",
+            "metalness": 0.0,
+            "roughness": 0.8
+          },
+          "scale": {
+            "x": 1.0,
+            "y": 1.0,
+            "z": 1.0
+          },
+          "position": {
+            "x": 3,
+            "y": 0.5,
+            "z": -5
+          }
+        },
+        {
+          "type": "mesh",
+          "name": "hawse_pipe",
+          "description": "Hawse pipe where anchor rode exits to chain Locker.",
+          "geometry": {
+            "type": "CylinderGeometry"
+          },
+          "material": {
+            "color": "#555555",
+            "metalness": 0.9,
+            "roughness": 0.2
+          },
+          "scale": {
+            "x": 0.5,
+            "y": 0.5,
+            "z": 0.5
+          },
+          "position": {
+            "x": 6,
+            "y": 0.25,
+            "z": -5
+          }
+        },
+        {
+          "type": "mesh",
+          "name": "cleat_forward",
+          "description": "Raised deck cleat, forged steel, bolted through deck plate.",
+          "geometry": {
+            "type": "CylinderGeometry"
+          },
+          "material": {
+            "color": "#888888",
+            "metalness": 0.9,
+            "roughness": 0.2
+          },
+          "scale": {
+            "x": 1.0,
+            "y": 1.0,
+            "z": 1.0
+          },
+          "position": {
+            "x": -6,
+            "y": 0.5,
+            "z": -2
+          }
+        }
+      ],
+      "agents": [
+        {
+          "type": "agent",
+          "name": "deckhand",
+          "color": "#ffd700",
+          "position": {
+            "x": -4,
+            "y": 1.5,
+            "z": -3
+          },
+          "scale": {
+            "x": 0.8,
+            "y": 1.8,
+            "z": 0.8
+          }
+        }
+      ],
+      "exits": [
+        {
+          "type": "exit",
+          "direction": "aft",
+          "target": "aft_cockpit",
+          "position": {
+            "x": 0,
+            "y": 2,
+            "z": 9.0
+          },
+          "rotation": {
+            "y": 3.141592653589793
+          },
+          "size": {
+            "width": 3,
+            "height": 4
+          },
+          "color": "#44ffaa",
+          "glow": true
+        },
+        {
+          "type": "exit",
+          "direction": "below",
+          "target": "engine_room",
+          "position": {
+            "x": 0,
+            "y": 2,
+            "z": 0
+          },
+          "rotation": {
+            "y": 3.141592653589793
+          },
+          "size": {
+            "width": 3,
+            "height": 4
+          },
+          "color": "#44ffaa",
+          "glow": true
+        }
+      ],
+      "lights": [
+        {
+          "type": "ambient",
+          "color": "#153040",
+          "intensity": 0.4
+        },
+        {
+          "type": "point",
+          "color": "#44ffaa",
+          "intensity": 0.8,
+          "position": {
+            "x": 0,
+            "y": 6,
+            "z": 0
+          },
+          "distance": 30
+        },
+        {
+          "type": "point",
+          "color": "#44ffaa",
+          "intensity": 0.3,
+          "position": {
+            "x": 0,
+            "y": 2,
+            "z": 9.0
+          },
+          "distance": 10
+        },
+        {
+          "type": "point",
+          "color": "#44ffaa",
+          "intensity": 0.3,
+          "position": {
+            "x": 0,
+            "y": 2,
+            "z": 0
+          },
+          "distance": 10
+        }
+      ],
+      "camera": {
+        "position": {
+          "x": 0,
+          "y": 4,
+          "z": 8
+        },
+        "lookAt": {
+          "x": 0,
+          "y": 1,
+          "z": 0
+        },
+        "fov": 60
+      }
+    },
+    "engine_room": {
+      "room": "engine_room",
+      "description": "The engine room thrums with diesel power. Twin engines drive the stern drive. The generator hums beneath the workbench where tools hang in careful order. Fuel lines bundle along the starboard bulkhead leading to the main tanks. Oil smell and heat define this working space.",
+      "theme": {
+        "bg": "#1a1a1a",
+        "fg": "#2a2a2a",
+        "accent": "#4488ff"
+      },
+      "floor": {
+        "type": "mesh",
+        "geometry": {
+          "type": "PlaneGeometry",
+          "width": 20,
+          "height": 20
+        },
+        "material": {
+          "color": "#8899aa",
+          "metalness": 0.9,
+          "roughness": 0.2,
+          "side": 2
+        },
+        "position": {
+          "x": 0,
+          "y": 0,
+          "z": 0
+        },
+        "rotation": {
+          "x": -1.5707963267948966,
+          "y": 0,
+          "z": 0
+        },
+        "receiveShadow": true
+      },
+      "walls": [
+        {
+          "type": "mesh",
+          "geometry": {
+            "type": "PlaneGeometry",
+            "width": 20,
+            "height": 8
+          },
+          "material": {
+            "color": "#6a6a6a",
+            "metalness": 0.0,
+            "roughness": 0.9,
+            "side": 0
+          },
+          "position": {
+            "x": 0,
+            "y": 4.0,
+            "z": -10.0
+          },
+          "rotation": {
+            "x": 0,
+            "y": 0,
+            "z": 0
+          }
+        },
+        {
+          "type": "mesh",
+          "geometry": {
+            "type": "PlaneGeometry",
+            "width": 20,
+            "height": 8
+          },
+          "material": {
+            "color": "#6a6a6a",
+            "metalness": 0.0,
+            "roughness": 0.9,
+            "side": 0
+          },
+          "position": {
+            "x": 0,
+            "y": 4.0,
+            "z": 10.0
+          },
+          "rotation": {
+            "x": 0,
+            "y": 3.141592653589793,
+            "z": 0
+          }
+        },
+        {
+          "type": "mesh",
+          "geometry": {
+            "type": "PlaneGeometry",
+            "width": 20,
+            "height": 8
+          },
+          "material": {
+            "color": "#6a6a6a",
+            "metalness": 0.0,
+            "roughness": 0.9,
+            "side": 0
+          },
+          "position": {
+            "x": 10.0,
+            "y": 4.0,
+            "z": 0
+          },
+          "rotation": {
+            "x": 0,
+            "y": -1.5707963267948966,
+            "z": 0
+          }
+        },
+        {
+          "type": "mesh",
+          "geometry": {
+            "type": "PlaneGeometry",
+            "width": 20,
+            "height": 8
+          },
+          "material": {
+            "color": "#6a6a6a",
+            "metalness": 0.0,
+            "roughness": 0.9,
+            "side": 0
+          },
+          "position": {
+            "x": -10.0,
+            "y": 4.0,
+            "z": 0
+          },
+          "rotation": {
+            "x": 0,
+            "y": 1.5707963267948966,
+            "z": 0
+          }
+        }
+      ],
+      "ceiling": {
+        "type": "mesh",
+        "geometry": {
+          "type": "PlaneGeometry",
+          "width": 20,
+          "height": 20
+        },
+        "material": {
+          "color": "#303040",
+          "metalness": 0.0,
+          "roughness": 0.9,
+          "side": 1
+        },
+        "position": {
+          "x": 0,
+          "y": 8,
+          "z": 0
+        },
+        "rotation": {
+          "x": 1.5707963267948966,
+          "y": 0,
+          "z": 0
+        }
+      },
+      "objects": [
+        {
+          "type": "mesh",
+          "name": "port_engine",
+          "description": "Port diesel engine, turbocharged, 350hp, dry exhaust elbow glowing orange.",
+          "geometry": {
+            "type": "CylinderGeometry"
+          },
+          "material": {
+            "color": "#445566",
+            "metalness": 0.9,
+            "roughness": 0.2
+          },
+          "scale": {
+            "x": 2.5,
+            "y": 2.5,
+            "z": 2.5
+          },
+          "position": {
+            "x": -6,
+            "y": 1.25,
+            "z": -5
+          }
+        },
+        {
+          "type": "mesh",
+          "name": "stbd_engine",
+          "description": "Starboard diesel engine, twin to port, synchronized throttle.",
+          "geometry": {
+            "type": "CylinderGeometry"
+          },
+          "material": {
+            "color": "#445566",
+            "metalness": 0.9,
+            "roughness": 0.2
+          },
+          "scale": {
+            "x": 2.5,
+            "y": 2.5,
+            "z": 2.5
+          },
+          "position": {
+            "x": -3,
+            "y": 1.25,
+            "z": -5
+          }
+        },
+        {
+          "type": "mesh",
+          "name": "generator",
+          "description": "Onan generator set, 8kW, diesel-powered, sound-shielded housing.",
+          "geometry": {
+            "type": "BoxGeometry"
+          },
+          "material": {
+            "color": "#556677",
+            "metalness": 0.9,
+            "roughness": 0.2
+          },
+          "scale": {
+            "x": 1.5,
+            "y": 1.5,
+            "z": 1.5
+          },
+          "position": {
+            "x": 0,
+            "y": 0.75,
+            "z": -5
+          }
+        },
+        {
+          "type": "mesh",
+          "name": "fuel_lines",
+          "description": "Bundled fuel lines, USCG approved, run to main tanks and filters.",
+          "geometry": {
+            "type": "CylinderGeometry"
+          },
+          "material": {
+            "color": "#aa4422",
+            "metalness": 0.9,
+            "roughness": 0.2
+          },
+          "scale": {
+            "x": 1.0,
+            "y": 1.0,
+            "z": 1.0
+          },
+          "position": {
+            "x": 3,
+            "y": 0.5,
+            "z": -5
+          }
+        },
+        {
+          "type": "mesh",
+          "name": "tool_rack",
+          "description": "Wall-mounted tool rack, wrenches and screwdrivers in order.",
+          "geometry": {
+            "type": "BoxGeometry"
+          },
+          "material": {
+            "color": "#666655",
+            "metalness": 0.9,
+            "roughness": 0.2
+          },
+          "scale": {
+            "x": 1.0,
+            "y": 1.0,
+            "z": 1.0
+          },
+          "position": {
+            "x": 6,
+            "y": 0.5,
+            "z": -5
+          }
+        },
+        {
+          "type": "mesh",
+          "name": "oil_filter",
+          "description": "Spin-on oil filter, spare filters stored below.",
+          "geometry": {
+            "type": "CylinderGeometry"
+          },
+          "material": {
+            "color": "#888866",
+            "metalness": 0.9,
+            "roughness": 0.2
+          },
+          "scale": {
+            "x": 0.5,
+            "y": 0.5,
+            "z": 0.5
+          },
+          "position": {
+            "x": -6,
+            "y": 0.25,
+            "z": -2
+          }
+        },
+        {
+          "type": "mesh",
+          "name": "battery_bank",
+          "description": "House bank, four 6V deep cycle, sealed, on-off switch visible.",
+          "geometry": {
+            "type": "BoxGeometry"
+          },
+          "material": {
+            "color": "#222222",
+            "metalness": 0.9,
+            "roughness": 0.2
+          },
+          "scale": {
+            "x": 1.5,
+            "y": 1.5,
+            "z": 1.5
+          },
+          "position": {
+            "x": -3,
+            "y": 0.75,
+            "z": -2
+          }
+        }
+      ],
+      "agents": [
+        {
+          "type": "agent",
+          "name": "engineer_bot",
+          "color": "#ffd700",
+          "position": {
+            "x": -4,
+            "y": 1.5,
+            "z": -3
+          },
+          "scale": {
+            "x": 0.8,
+            "y": 1.8,
+            "z": 0.8
+          }
+        }
+      ],
+      "exits": [
+        {
+          "type": "exit",
+          "direction": "up",
+          "target": "foredeck",
+          "position": {
+            "x": 0,
+            "y": 2,
+            "z": 0
+          },
+          "rotation": {
+            "y": 0
+          },
+          "size": {
+            "width": 3,
+            "height": 4
+          },
+          "color": "#4488ff",
+          "glow": true
+        },
+        {
+          "type": "exit",
+          "direction": "forward",
+          "target": "aft_cockpit",
+          "position": {
+            "x": 0,
+            "y": 2,
+            "z": -9.0
+          },
+          "rotation": {
+            "y": 0
+          },
+          "size": {
+            "width": 3,
+            "height": 4
+          },
+          "color": "#4488ff",
+          "glow": true
+        }
+      ],
+      "lights": [
+        {
+          "type": "ambient",
+          "color": "#252525",
+          "intensity": 0.4
+        },
+        {
+          "type": "point",
+          "color": "#4488ff",
+          "intensity": 0.8,
+          "position": {
+            "x": 0,
+            "y": 6,
+            "z": 0
+          },
+          "distance": 30
+        },
+        {
+          "type": "point",
+          "color": "#4488ff",
+          "intensity": 0.3,
+          "position": {
+            "x": 0,
+            "y": 2,
+            "z": 0
+          },
+          "distance": 10
+        },
+        {
+          "type": "point",
+          "color": "#4488ff",
+          "intensity": 0.3,
+          "position": {
+            "x": 0,
+            "y": 2,
+            "z": -9.0
+          },
+          "distance": 10
+        }
+      ],
+      "camera": {
+        "position": {
+          "x": 0,
+          "y": 4,
+          "z": 8
+        },
+        "lookAt": {
+          "x": 0,
+          "y": 1,
+          "z": 0
+        },
+        "fov": 60
+      }
+    },
+    "aft_cockpit": {
+      "room": "aft_cockpit",
+      "description": "The aft cockpit is where the catch comes aboard. Scuppers drain seawater over the stern. Reinforced deck plates bear the weight of catch boxes and equipment. The transom door leads to swim platform when docked. Control station for stern drive and trim tabs.",
+      "theme": {
+        "bg": "#0a2a3a",
+        "fg": "#1a4a5a",
+        "accent": "#44ffaa"
+      },
+      "floor": {
+        "type": "mesh",
+        "geometry": {
+          "type": "PlaneGeometry",
+          "width": 20,
+          "height": 20
+        },
+        "material": {
+          "color": "#7a5c3a",
+          "metalness": 0.0,
+          "roughness": 0.85,
+          "side": 2
+        },
+        "position": {
+          "x": 0,
+          "y": 0,
+          "z": 0
+        },
+        "rotation": {
+          "x": -1.5707963267948966,
+          "y": 0,
+          "z": 0
+        },
+        "receiveShadow": true
+      },
+      "walls": [
+        {
+          "type": "mesh",
+          "geometry": {
+            "type": "PlaneGeometry",
+            "width": 20,
+            "height": 8
+          },
+          "material": {
+            "color": "#6a6a6a",
+            "metalness": 0.0,
+            "roughness": 0.9,
+            "side": 0
+          },
+          "position": {
+            "x": 0,
+            "y": 4.0,
+            "z": -10.0
+          },
+          "rotation": {
+            "x": 0,
+            "y": 0,
+            "z": 0
+          }
+        },
+        {
+          "type": "mesh",
+          "geometry": {
+            "type": "PlaneGeometry",
+            "width": 20,
+            "height": 8
+          },
+          "material": {
+            "color": "#6a6a6a",
+            "metalness": 0.0,
+            "roughness": 0.9,
+            "side": 0
+          },
+          "position": {
+            "x": 0,
+            "y": 4.0,
+            "z": 10.0
+          },
+          "rotation": {
+            "x": 0,
+            "y": 3.141592653589793,
+            "z": 0
+          }
+        },
+        {
+          "type": "mesh",
+          "geometry": {
+            "type": "PlaneGeometry",
+            "width": 20,
+            "height": 8
+          },
+          "material": {
+            "color": "#6a6a6a",
+            "metalness": 0.0,
+            "roughness": 0.9,
+            "side": 0
+          },
+          "position": {
+            "x": 10.0,
+            "y": 4.0,
+            "z": 0
+          },
+          "rotation": {
+            "x": 0,
+            "y": -1.5707963267948966,
+            "z": 0
+          }
+        },
+        {
+          "type": "mesh",
+          "geometry": {
+            "type": "PlaneGeometry",
+            "width": 20,
+            "height": 8
+          },
+          "material": {
+            "color": "#6a6a6a",
+            "metalness": 0.0,
+            "roughness": 0.9,
+            "side": 0
+          },
+          "position": {
+            "x": -10.0,
+            "y": 4.0,
+            "z": 0
+          },
+          "rotation": {
+            "x": 0,
+            "y": 1.5707963267948966,
+            "z": 0
+          }
+        }
+      ],
+      "ceiling": {
+        "type": "mesh",
+        "geometry": {
+          "type": "PlaneGeometry",
+          "width": 20,
+          "height": 20
+        },
+        "material": {
+          "color": "#303040",
+          "metalness": 0.0,
+          "roughness": 0.9,
+          "side": 1
+        },
+        "position": {
+          "x": 0,
+          "y": 8,
+          "z": 0
+        },
+        "rotation": {
+          "x": 1.5707963267948966,
+          "y": 0,
+          "z": 0
+        }
+      },
+      "objects": [
+        {
+          "type": "mesh",
+          "name": "stern_drive",
+          "description": "Stern drive unit, bravo three, propellers forward of rudders.",
+          "geometry": {
+            "type": "CylinderGeometry"
+          },
+          "material": {
+            "color": "#445566",
+            "metalness": 0.9,
+            "roughness": 0.2
+          },
+          "scale": {
+            "x": 2.5,
+            "y": 2.5,
+            "z": 2.5
+          },
+          "position": {
+            "x": -6,
+            "y": 1.25,
+            "z": -5
+          }
+        },
+        {
+          "type": "mesh",
+          "name": "trim_tabs",
+          "description": "Lenco trim tabs, port and starboard, switch panel at helm.",
+          "geometry": {
+            "type": "PlaneGeometry"
+          },
+          "material": {
+            "color": "#555555",
+            "metalness": 0.9,
+            "roughness": 0.2
+          },
+          "scale": {
+            "x": 1.0,
+            "y": 1.0,
+            "z": 1.0
+          },
+          "position": {
+            "x": -3,
+            "y": 0.5,
+            "z": -5
+          }
+        },
+        {
+          "type": "mesh",
+          "name": "fishfinder",
+          "description": "Color sonar fishfinder, transducer through hull, shows bottom and fish.",
+          "geometry": {
+            "type": "BoxGeometry"
+          },
+          "material": {
+            "color": "#1a2a3a",
+            "metalness": 0.9,
+            "roughness": 0.2,
+            "emissive": "#44ffff",
+            "emissiveIntensity": 1.0
+          },
+          "scale": {
+            "x": 1.0,
+            "y": 1.0,
+            "z": 1.0
+          },
+          "position": {
+            "x": 0,
+            "y": 0.5,
+            "z": -5
+          }
+        },
+        {
+          "type": "mesh",
+          "name": "downrigger_posts",
+          "description": "Dual downrigger mounts, rod holders each side, release clips.",
+          "geometry": {
+            "type": "CylinderGeometry"
+          },
+          "material": {
+            "color": "#666655",
+            "metalness": 0.9,
+            "roughness": 0.2
+          },
+          "scale": {
+            "x": 1.5,
+            "y": 1.5,
+            "z": 1.5
+          },
+          "position": {
+            "x": 3,
+            "y": 0.75,
+            "z": -5
+          }
+        },
+        {
+          "type": "mesh",
+          "name": "bait_well",
+          "description": "Live bait well, recirculating pump, divided sections.",
+          "geometry": {
+            "type": "BoxGeometry"
+          },
+          "material": {
+            "color": "#4488aa",
+            "metalness": 0.9,
+            "roughness": 0.2
+          },
+          "scale": {
+            "x": 1.0,
+            "y": 1.0,
+            "z": 1.0
+          },
+          "position": {
+            "x": 6,
+            "y": 0.5,
+            "z": -5
+          }
+        },
+        {
+          "type": "mesh",
+          "name": "transom_sump",
+          "description": "Transom sump box, shower drain and washdown pump.",
+          "geometry": {
+            "type": "BoxGeometry"
+          },
+          "material": {
+            "color": "#555555",
+            "metalness": 0.9,
+            "roughness": 0.2
+          },
+          "scale": {
+            "x": 0.5,
+            "y": 0.5,
+            "z": 0.5
+          },
+          "position": {
+            "x": -6,
+            "y": 0.25,
+            "z": -2
+          }
+        }
+      ],
+      "agents": [
+        {
+          "type": "agent",
+          "name": "deckhand",
+          "color": "#ffd700",
+          "position": {
+            "x": -4,
+            "y": 1.5,
+            "z": -3
+          },
+          "scale": {
+            "x": 0.8,
+            "y": 1.8,
+            "z": 0.8
+          }
+        },
+        {
+          "type": "agent",
+          "name": "cargo_robot",
+          "color": "#ffd700",
+          "position": {
+            "x": 0,
+            "y": 1.5,
+            "z": -3
+          },
+          "scale": {
+            "x": 0.8,
+            "y": 1.8,
+            "z": 0.8
+          }
+        }
+      ],
+      "exits": [
+        {
+          "type": "exit",
+          "direction": "forward",
+          "target": "foredeck",
+          "position": {
+            "x": 0,
+            "y": 2,
+            "z": -9.0
+          },
+          "rotation": {
+            "y": 0
+          },
+          "size": {
+            "width": 3,
+            "height": 4
+          },
+          "color": "#44ffaa",
+          "glow": true
+        },
+        {
+          "type": "exit",
+          "direction": "forward_up",
+          "target": "wheelhouse",
+          "position": {
+            "x": 0,
+            "y": 2,
+            "z": -9.0
+          },
+          "rotation": {
+            "y": 0
+          },
+          "size": {
+            "width": 3,
+            "height": 4
+          },
+          "color": "#44ffaa",
+          "glow": true
+        },
+        {
+          "type": "exit",
+          "direction": "forward_down",
+          "target": "galley",
+          "position": {
+            "x": 0,
+            "y": 2,
+            "z": -9.0
+          },
+          "rotation": {
+            "y": 0
+          },
+          "size": {
+            "width": 3,
+            "height": 4
+          },
+          "color": "#44ffaa",
+          "glow": true
+        },
+        {
+          "type": "exit",
+          "direction": "in",
+          "target": "engine_room",
+          "position": {
+            "x": 0,
+            "y": 2,
+            "z": 0
+          },
+          "rotation": {
+            "y": 0
+          },
+          "size": {
+            "width": 3,
+            "height": 4
+          },
+          "color": "#44ffaa",
+          "glow": true
+        }
+      ],
+      "lights": [
+        {
+          "type": "ambient",
+          "color": "#153040",
+          "intensity": 0.4
+        },
+        {
+          "type": "point",
+          "color": "#44ffaa",
+          "intensity": 0.8,
+          "position": {
+            "x": 0,
+            "y": 6,
+            "z": 0
+          },
+          "distance": 30
+        },
+        {
+          "type": "point",
+          "color": "#44ffaa",
+          "intensity": 0.3,
+          "position": {
+            "x": 0,
+            "y": 2,
+            "z": -9.0
+          },
+          "distance": 10
+        },
+        {
+          "type": "point",
+          "color": "#44ffaa",
+          "intensity": 0.3,
+          "position": {
+            "x": 0,
+            "y": 2,
+            "z": -9.0
+          },
+          "distance": 10
+        },
+        {
+          "type": "point",
+          "color": "#44ffaa",
+          "intensity": 0.3,
+          "position": {
+            "x": 0,
+            "y": 2,
+            "z": -9.0
+          },
+          "distance": 10
+        },
+        {
+          "type": "point",
+          "color": "#44ffaa",
+          "intensity": 0.3,
+          "position": {
+            "x": 0,
+            "y": 2,
+            "z": 0
+          },
+          "distance": 10
+        }
+      ],
+      "camera": {
+        "position": {
+          "x": 0,
+          "y": 4,
+          "z": 8
+        },
+        "lookAt": {
+          "x": 0,
+          "y": 1,
+          "z": 0
+        },
+        "fov": 60
+      }
+    }
+  },
+  "exits": {
+    "wheelhouse": {
+      "aft": "aft_cockpit",
+      "down": "galley"
+    },
+    "galley": {
+      "up": "wheelhouse",
+      "aft": "aft_cockpit"
+    },
+    "foredeck": {
+      "aft": "aft_cockpit",
+      "below": "engine_room"
+    },
+    "engine_room": {
+      "up": "foredeck",
+      "forward": "aft_cockpit"
+    },
+    "aft_cockpit": {
+      "forward": "foredeck",
+      "forward_up": "wheelhouse",
+      "forward_down": "galley",
+      "in": "engine_room"
+    }
+  }
+}

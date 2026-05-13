@@ -1,108 +1,50 @@
-# Sample MUD rooms for Terrain 3D.
-# Edit this file to create your own rooms.
-# Format: Room, Description, Exits, Objects, Occupants.
-
-Room: harbor
-Description: A bustling harbor where vessels dock and agents arrive. The salt air carries the scent of teak and diesel. Mooring lines stretch taut against weathered pylons.
-Theme: harbor
-Floor: deck
-Exits: north -> wheelhouse, east -> aft_deck, west -> tide_pool
-Objects: anchor, mooring_pole, life_preserver, dock_lantern
-Occupants: harbor_master, cargo_robot
+# Fishing Vessel "Cocapn" — MUD Room Definitions
+# 5 rooms matching the vessel room navigator
+# Run: python3 terrain_core.py rooms.mud
 
 Room: wheelhouse
-Description: The wheelhouse hums with navigation electronics. Radar screens cast a blue glow across the helm. Digital readouts track position, heading, and weather systems.
+Description: The wheelhouse is the nerve center of the vessel. Navigation electronics line the console in careful rows. A magnetic compass sits port of the helm. Radar and chartplotter displays cast pale light across polished teak trim. The large windows offer 270-degree visibility over the bow and decks.
 Theme: wheelhouse
 Floor: wood
-Exits: south -> harbor, up -> compass_platform
-Objects: helm_wheel, radar_display, compass_rose, nav_charts, radio_console
-Occupants: navigator
+Exits: aft -> aft_cockpit, down -> galley
+Objects: helm_wheel, radar_display, compass_rose, nav_charts, radio_console, gpsReceiver, spotlight_control
+Occupants: captain
 
-Room: aft_deck
-Description: The aft deck stretches wide, framed by safety rails. Reinforced deck plating bears the weight of cargo crates and fishing equipment. Salt spray mists the surfaces.
+Room: galley
+Description: The galley is compact but efficient. A small propane stove sits beneath timber cabinets. The sink pumps seawater or fresh depending on the valve setting. Teak fiddled benches line the table where crew take meals. Through the porthole, grey sky and sea blur together.
+Theme: wheelhouse
+Floor: wood
+Exits: up -> wheelhouse, aft -> aft_cockpit
+Objects: propane_stove, sink_pump, galley_table, icebox, water_tank, coffee_maker
+Occupants: none
+
+Room: foredeck
+Description: The foredeck is the business end of the boat. Reinforced deck plating bears the anchor chain and rope bins. Safety rails line the gunwales. The windlass handles anchor duties while bait tanks murmur with circulating seawater. Salt crusts the hawse pipes where anchor rode runs.
 Theme: aft_deck
 Floor: deck
-Exits: west -> harbor, down -> engine_room
-Objects: deck_crane, cargo_crate, fishing_net_reel, life_raft_mount
-Occupants: deck_hand
+Exits: aft -> aft_cockpit, below -> engine_room
+Objects: windlass, anchor_chain, bait_tank, rope_bin, hawse_pipe, cleat_forward
+Occupants: deckhand
 
 Room: engine_room
-Description: The engine room throbs with heat. Twin diesel engines rumble, their exhaust manifold glowing orange. Tool racks line the bulkheads, wrenches and gauges within reach.
+Description: The engine room thrums with diesel power. Twin engines drive the stern drive. The generator hums beneath the workbench where tools hang in careful order. Fuel lines bundle along the starboard bulkhead leading to the main tanks. Oil smell and heat define this working space.
 Theme: engine_room
 Floor: metal
-Exits: up -> aft_deck, south -> fuel_bay
-Objects: port_engine, stbd_engine, fuel_lines, tool_rack, generator_set
+Exits: up -> foredeck, forward -> aft_cockpit
+Objects: port_engine, stbd_engine, generator, fuel_lines, tool_rack, oil_filter, battery_bank
 Occupants: engineer_bot
 
-Room: tide_pool
-Description: A sheltered tide pool where creatures cluster in shallow water. Crabs scuttle across barnacled rocks. The gentle slosh of waves marks the rhythm of the sea.
-Theme: tide-pool
-Floor: stone
-Exits: east -> harbor, north -> sea_cave
-Objects: barnacle_rock, crab_cluster, tide_kelp, anemone_patch
-Occupants: none
-
-Room: fuel_bay
-Description: Fuel Bay - Vertical storage for diesel canisters and emergency supplies. Yellow warning stripes mark hazardous zones. Ventilation fans maintain safe air quality.
-Theme: engine_room
-Floor: metal
-Exits: north -> engine_room
-Objects: diesel_tank, fuel_canister_rack, spill_kit, emergency_shower, vent_fan
-Occupants: none
-
-Room: compass_platform
-Description: An elevated observation platform offering panoramic views. The compass rose is inlaid in teak, its cardinal points brass-bound. From here, all directions are clear.
-Theme: wheelhouse
-Floor: wood
-Exits: down -> wheelhouse
-Objects: compass_rose, brass_telescope, flag_pole, rangefinder
-Occupants: lookout
-
-Room: sea_cave
-Description: A sea cave carved by centuries of waves. Bioluminescent algae casts an ethereal blue glow on the wet stone walls. Water drips in rhythmic counterpoint to the distant surf.
-Theme: tide-pool
-Floor: stone
-Exits: south -> tide_pool, east -> underwater_chamber
-Objects: glow_algae, tide_pool_formations, bat_cocoons, cave_crystal
-Occupants: cave_crab
+Room: aft_cockpit
+Description: The aft cockpit is where the catch comes aboard. Scuppers drain seawater over the stern. Reinforced deck plates bear the weight of catch boxes and equipment. The transom door leads to swim platform when docked. Control station for stern drive and trim tabs.
+Theme: aft_deck
+Floor: deck
+Exits: forward -> foredeck, forward_up -> wheelhouse, forward_down -> galley, in -> engine_room
+Objects: stern_drive, trim_tabs, fishfinder, downrigger_posts, bait_well, transom_sump
+Occupants: deckhand, cargo_robot
 
 # ============================================================================
 # OBJECT DEFINITIONS
 # ============================================================================
-
-Object: anchor
-Type: prop
-Shape: cone
-Color: #556677
-Size: large
-Material: iron
-Description: A rusted admiralty-pattern anchor, its flukes worn smooth by countless anchors.
-
-Object: mooring_pole
-Type: prop
-Shape: cylinder
-Color: #6a5a4a
-Size: medium
-Material: wood
-Description: Weathered teak mooring pole, secured with braided rope loops.
-
-Object: life_preserver
-Type: prop
-Shape: torus
-Color: #ff4444
-Size: medium
-Material: fabric
-Description: Orange life preserver with SOLAS reflective tape, mounted on brass brackets.
-
-Object: dock_lantern
-Type: light
-Shape: cylinder
-Color: #ffcc66
-Size: small
-Material: metal
-Glow: true
-Emissive: #ffaa44
-Description: Brass dock lantern with warm amber glow, salt-stained glass.
 
 Object: helm_wheel
 Type: prop
@@ -110,7 +52,7 @@ Shape: torus
 Color: #8b6914
 Size: large
 Material: wood
-Description: Polished mahogany helm wheel, brass fittings gleaming.
+Description: Polished mahogany helm wheel, eight spokes, brass hub gleaming.
 
 Object: radar_display
 Type: screen
@@ -120,15 +62,147 @@ Size: medium
 Material: metal
 Glow: true
 Emissive: #44aaff
-Description: Maritime radar display showing vessel positions and coastline.
+Description: Maritime radar display, phosphor green sweep showing targets.
 
 Object: compass_rose
 Type: prop
 Shape: plane
 Color: #c9a227
-Size: large
+Size: medium
 Material: brass
-Description: Inlaid brass compass rose with eight cardinal points.
+Description: Ship's compass in brass binnacle, gimbaled, eight cardinal points marked.
+
+Object: nav_charts
+Type: screen
+Shape: box
+Color: #1a3a2a
+Size: small
+Material: metal
+Glow: true
+Emissive: #44ff88
+Description: Chartplotter screen showing vessel position on nautical charts.
+
+Object: radio_console
+Type: equipment
+Shape: box
+Color: #2a2a2a
+Size: medium
+Material: metal
+Glow: true
+Emissive: #446688
+Description: VHF radio console, channel 16 guarded, hailer and foghorn buttons.
+
+Object: gpsReceiver
+Type: equipment
+Shape: box
+Color: #1a1a1a
+Size: small
+Material: metal
+Description: GPS receiver with WAAS correction, displays lat/lon and COG.
+
+Object: spotlight_control
+Type: equipment
+Shape: box
+Color: #333333
+Size: small
+Material: metal
+Description: Remote spotlight control, joystick for pan and tilt.
+
+Object: propane_stove
+Type: appliance
+Shape: box
+Color: #888888
+Size: medium
+Material: metal
+Description: Two-burner propane stove, gimballed for sea angle, broiler below.
+
+Object: sink_pump
+Type: equipment
+Shape: cylinder
+Color: #666666
+Size: small
+Material: metal
+Description: Manual pump sink, lever action, seawater or fresh water selectable.
+
+Object: galley_table
+Type: furniture
+Shape: box
+Color: #6b4423
+Size: large
+Material: teak
+Description: Teak fiddled table, benches each side, secured for sea conditions.
+
+Object: icebox
+Type: storage
+Shape: box
+Color: #aaaaaa
+Size: medium
+Material: metal
+Description: Top-opening icebox, baffled liner, drains overboard.
+
+Object: water_tank
+Type: storage
+Shape: cylinder
+Color: #aaaaaa
+Size: large
+Material: metal
+Description: Fresh water tank, 200 liter capacity, gauge visible through sight tube.
+
+Object: coffee_maker
+Type: appliance
+Shape: box
+Color: #222222
+Size: small
+Material: metal
+Description: Simple drip coffee maker, 12V powered, secured to counter.
+
+Object: windlass
+Type: machinery
+Shape: cylinder
+Color: #555555
+Size: large
+Material: metal
+Description: Anchor windlass, bronze drum, chain gypsy, foot switch controls.
+
+Object: anchor_chain
+Type: pipe
+Shape: cylinder
+Color: #445566
+Size: huge
+Material: iron
+Description: Galvanized anchor chain, short link, marked every fathom.
+
+Object: bait_tank
+Type: storage
+Shape: box
+Color: #4488aa
+Size: large
+Material: metal
+Description: Live bait tank with circulating seawater pump, hinged lid.
+
+Object: rope_bin
+Type: storage
+Shape: box
+Color: #6a5a4a
+Size: medium
+Material: wood
+Description: Rope bin with braided nylon line, different sizes and lengths.
+
+Object: hawse_pipe
+Type: pipe
+Shape: cylinder
+Color: #555555
+Size: small
+Material: metal
+Description: Hawse pipe where anchor rode exits to chain Locker.
+
+Object: cleat_forward
+Type: prop
+Shape: cylinder
+Color: #888888
+Size: medium
+Material: metal
+Description: Raised deck cleat, forged steel, bolted through deck plate.
 
 Object: port_engine
 Type: engine
@@ -136,7 +210,7 @@ Shape: cylinder
 Color: #445566
 Size: huge
 Material: metal
-Description: Port diesel engine, twin cylinders, exhaust manifold glowing orange.
+Description: Port diesel engine, turbocharged, 350hp, dry exhaust elbow glowing orange.
 
 Object: stbd_engine
 Type: engine
@@ -144,7 +218,15 @@ Shape: cylinder
 Color: #445566
 Size: huge
 Material: metal
-Description: Starboard diesel engine, twin cylinders, exhaust manifold glowing orange.
+Description: Starboard diesel engine, twin to port, synchronized throttle.
+
+Object: generator
+Type: engine
+Shape: box
+Color: #556677
+Size: large
+Material: metal
+Description: Onan generator set, 8kW, diesel-powered, sound-shielded housing.
 
 Object: fuel_lines
 Type: pipe
@@ -152,7 +234,7 @@ Shape: cylinder
 Color: #aa4422
 Size: medium
 Material: metal
-Description: Bundled fuel lines, copper and rubber, running to the engines.
+Description: Bundled fuel lines, USCG approved, run to main tanks and filters.
 
 Object: tool_rack
 Type: storage
@@ -160,70 +242,70 @@ Shape: box
 Color: #666655
 Size: medium
 Material: metal
-Description: Wall-mounted tool rack with wrenches, gauges, and screwdrivers.
+Description: Wall-mounted tool rack, wrenches and screwdrivers in order.
 
-Object: generator_set
-Type: engine
-Shape: box
-Color: #556677
-Size: large
-Material: metal
-Description: Backup generator set, diesel-powered, humming steadily.
-
-Object: deck_crane
-Type: machinery
+Object: oil_filter
+Type: filter
 Shape: cylinder
 Color: #888866
+Size: small
+Material: metal
+Description: Spin-on oil filter, spare filters stored below.
+
+Object: battery_bank
+Type: storage
+Shape: box
+Color: #222222
+Size: large
+Material: metal
+Description: House bank, four 6V deep cycle, sealed, on-off switch visible.
+
+Object: stern_drive
+Type: engine
+Shape: cylinder
+Color: #445566
 Size: huge
 Material: metal
-Description: Hydraulic deck crane, arm extended over the water.
+Description: Stern drive unit, bravo three, propellers forward of rudders.
 
-Object: cargo_crate
-Type: container
+Object: trim_tabs
+Type: equipment
+Shape: plane
+Color: #555555
+Size: medium
+Material: metal
+Description: Lenco trim tabs, port and starboard, switch panel at helm.
+
+Object: fishfinder
+Type: screen
 Shape: box
-Color: #8b7355
-Size: large
-Material: wood
-Description: Wooden cargo crate, stenciled with destination port.
+Color: #1a2a3a
+Size: medium
+Material: metal
+Glow: true
+Emissive: #44ffff
+Description: Color sonar fishfinder, transducer through hull, shows bottom and fish.
 
-Object: fishing_net_reel
+Object: downrigger_posts
 Type: machinery
 Shape: cylinder
-Color: #6a5a4a
+Color: #666655
 Size: large
 Material: metal
-Description: Hydraulic net reel, net bundled and ready for deployment.
+Description: Dual downrigger mounts, rod holders each side, release clips.
 
-Object: life_raft_mount
+Object: bait_well
+Type: storage
+Shape: box
+Color: #4488aa
+Size: medium
+Material: metal
+Description: Live bait well, recirculating pump, divided sections.
+
+Object: transom_sump
 Type: equipment
 Shape: box
-Color: #ff8844
-Size: medium
-Material: metal
-Description: Inflatable life raft mount, yellow container, coast guard approved.
-
-Object: diesel_tank
-Type: storage
-Shape: cylinder
-Color: #aa3333
-Size: huge
-Material: metal
-Description: Vertical diesel storage tank, hazard markings, 5000 liter capacity.
-
-Object: fuel_canister_rack
-Type: storage
-Shape: box
-Color: #666655
-Size: medium
-Material: metal
-Description: Rack of red diesel canisters, safety straps, fire extinguisher nearby.
-
-Object: glow_algae
-Type: light
-Shape: sphere
-Color: #44ffaa
+Color: #555555
 Size: small
-Material: organic
-Glow: true
-Emissive: #44ffaa
-Description: Bioluminescent algae, pulsing with soft blue-green light.
+Material: metal
+Description: Transom sump box, shower drain and washdown pump.
