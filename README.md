@@ -1,34 +1,45 @@
-# Terrain — MUD-to-Visual Bridge
+# Terrain
 
-> *Crabs stir the MUD into walkable terrain. The dirt becomes the surface.*
+You remember text adventures. Dark rooms. A skeleton in the corner holding a rusty key. A lantern that's almost out. The prose painted everything — you supplied the 3D in your head.
 
-Terrain connects PLATO's MUD rooms (text-based) to visual ScummVM-style scenes (browser-based). Same rooms, two renderings — one text, one visual.
+Now imagine walking through that room instead of imagining it.
 
-## Languages
+`terrain` parses MUD room descriptions and compiles them into 3D scenes you can walk through in a browser. The MUD doesn't know it's being rendered. It just serves rooms. Terrain sits between the text world and the visual one — the chart table where you translate between them.
 
-| Language | Layer | Status |
-|----------|-------|--------|
-| Python | Bridge server + room parsing | ✅ Port 4070 |
-| HTML/JS | Browser renderer (canvas) | ✅ terrain.html |
-| TypeScript | Reusable scene renderer library | 🔄 Building |
-| Rust | High-performance room engine | 🔄 Building |
-| WebGPU | GPU-accelerated scene rendering | 🔄 Building |
+## How It Works
 
-## Architecture
+Write a room file:
 
 ```
-MUD (4042) → Terrain Bridge (4070) → Browser Renderer (canvas/WebGPU)
-                ↓
-           Agent Engine (native room ops)
+Room: wheelhouse
+Description: The wheelhouse is the nerve center of the vessel.
+  Navigation electronics line the console in careful rows.
+  Radar and chartplotter displays cast pale light across polished teak trim.
+Exits: aft -> aft_cockpit, down -> galley  
+Objects: helm_wheel, radar_display, compass_rose
 ```
+
+Run the compiler:
+
+```bash
+python3 terrain_core.py rooms.mud
+```
+
+Open the viewer — your rooms are now a 3D space. Drag to look around. Click exits to walk. Each object in the room description becomes a 3D primitive with appropriate materials (metal → metallic, wood → wood grain, water → reflective).
+
+## Why
+
+MUD rooms are the purest form of spatial description — a room is defined by what's in it, what connects to it, and what mood it creates. Terrain makes that description visible without losing the text. Both versions coexist. The room file is always the canonical form.
 
 ## Quick Start
 
 ```bash
-python3 terrain.py    # Bridge on :4070
-# Open http://localhost:4070
+git clone https://github.com/SuperInstance/terrain.git
+cd terrain
+python3 terrain_core.py rooms.mud
+# Open index.html in a browser
 ```
 
-## The Naming
+## License
 
-Terrain is what the crabs shape from the MUD — raw earth becomes the walkable surface. Witness marks (tiles, calibrations) anchor the splines that reconstruct the continuous field between snap points.
+Apache 2.0 — Cocapn fleet infrastructure.
