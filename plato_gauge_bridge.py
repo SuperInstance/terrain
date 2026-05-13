@@ -8,7 +8,7 @@ Terrain renders as visual gauges in the browser. The ESP32 doesn't know."""
 import json, time, http.server, urllib.request
 from collections import deque
 
-PLATO = "http://localhost:8847"
+PLATO = "https://plato.purplepincher.org"
 ROOM = "esp32-engine"
 HISTORY = 100  # Keep last 100 readings per channel
 readings = {f"gauge_{i}": deque(maxlen=HISTORY) for i in range(4)}
