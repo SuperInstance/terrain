@@ -5,12 +5,34 @@ test_integration.py — End-to-end integration tests.
 import pytest
 import json
 import os
+import shutil
 import subprocess
+import sys
+
+# Ensure the repo root is on the path so terrain_core can be imported
+REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+sys.path.insert(0, REPO_ROOT)
 
 from terrain_core import (
     load_mud_file, generate_scene, generate_all_scenes,
     compile_room, compile_to_json, TerrainCore
 )
+
+# Setup: copy necessary files to /tmp/terrain for the integration tests
+TERRAIN_TMP = "/tmp/terrain"
+
+@pytest.fixture(autouse=True, scope="session")
+def setup_terrain_files():
+    """Copy terrain files to /tmp/terrain/ before tests, clean up after."""
+    os.makedirs(TERRAIN_TMP, exist_ok=True)
+    for fname in ["rooms.mud", "scene.json", "terrain_core.py"]:
+        src = os.path.join(REPO_ROOT, fname)
+        dst = os.path.join(TERRAIN_TMP, fname)
+        if os.path.exists(src):
+            shutil.copy2(src, dst)
+    yield
+    # Cleanup is optional — leave files for debugging
+    # shutil.rmtree(TERRAIN_TMP, ignore_errors=True)
 
 
 # ============================================================================
