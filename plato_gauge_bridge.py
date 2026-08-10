@@ -23,7 +23,8 @@ def tile_value(tile):
         for p in parts:
             if p.startswith("value="):
                 return int(p.split("=")[1])
-    except: pass
+    except (ValueError, AttributeError, TypeError):
+        pass
     return None
 
 def fetch_readings():
@@ -42,7 +43,8 @@ def fetch_readings():
                     readings[channel] = deque(maxlen=HISTORY)
                 readings[channel].append(val)
                 latest[channel] = val
-    except: pass
+    except Exception:
+        pass
 
 def dashboard_scene():
     """Build a dashboard scene from ESP32 readings."""

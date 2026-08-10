@@ -13,7 +13,8 @@ def mud_get(path):
     try:
         r = urllib.request.urlopen(f"{MUD}{path}", timeout=5)
         return json.loads(r.read())
-    except: return {}
+    except Exception:
+        return {}
 
 class TerrainHandler(http.server.BaseHTTPRequestHandler):
     def _json(self, d, code=200):
@@ -34,7 +35,8 @@ class TerrainHandler(http.server.BaseHTTPRequestHandler):
         if p == "/":
             f = os.path.join(HERE, "terrain.html")
             if os.path.exists(f):
-                self._html(open(f).read())
+                with open(f) as fh:
+                    self._html(fh.read())
             else:
                 self._html("<html><body><h1>Terrain</h1><p>Build the HTML file.</p></body></html>")
         elif p == "/api/scene":

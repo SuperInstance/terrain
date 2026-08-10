@@ -119,9 +119,9 @@ class TestParseMudRoom:
     def test_parse_occupants(self):
         room = parse_mud_room(FULL_ROOM)
         assert "engineer_bot" in room.occupants
-        # "none" literal is valid - means no agents (parsed as string "none")
+        # "none" literal should be treated as empty list (no occupants)
         room2 = parse_mud_room(MULTI_LINE_DESC)
-        assert "none" in room2.occupants
+        assert room2.occupants == []
 
     def test_room_def_dataclass_fields(self):
         room = parse_mud_room(FULL_ROOM)

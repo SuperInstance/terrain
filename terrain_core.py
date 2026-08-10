@@ -196,11 +196,17 @@ def parse_mud_room(text: str) -> RoomDef:
                     
         elif line.startswith("Objects:"):
             objs_str = line.split(":", 1)[1].strip()
-            room.objects = [o.strip() for o in objs_str.split(",") if o.strip()]
+            if objs_str.lower() == "none":
+                room.objects = []
+            else:
+                room.objects = [o.strip() for o in objs_str.split(",") if o.strip()]
             
         elif line.startswith("Occupants:"):
             occ_str = line.split(":", 1)[1].strip()
-            room.occupants = [o.strip() for o in occ_str.split(",") if o.strip()]
+            if occ_str.lower() == "none":
+                room.occupants = []
+            else:
+                room.occupants = [o.strip() for o in occ_str.split(",") if o.strip()]
             
         elif line.startswith("Theme:"):
             room.theme = line.split(":", 1)[1].strip()
@@ -639,6 +645,8 @@ class TerrainCore:
         self.room_map: Dict[str, RoomDef] = {}
         
         if mud_file:
+            if not os.path.exists(mud_file):
+                raise FileNotFoundError(f"MUD file not found: {mud_file}")
             self.load_mud(mud_file, objects_file)
     
     def load_mud(self, mud_file: str, objects_file: str = None):

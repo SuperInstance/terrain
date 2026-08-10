@@ -69,8 +69,11 @@ impl SceneCache {
     }
     
     pub fn insert(&mut self, room: String, scene: Scene) {
-        if self.scenes.len() >= self.max_entries {
-            self.scenes.clear();  // Simple eviction
+        if self.scenes.len() >= self.max_entries && !self.scenes.contains_key(&room) {
+            // Evict oldest entry (FIFO approximation of LRU)
+            if let Some(first_key) = self.scenes.keys().next().cloned() {
+                self.scenes.remove(&first_key);
+            }
         }
         self.scenes.insert(room, scene);
     }
@@ -107,5 +110,20 @@ mod tests {
         cache.insert("forge".into(), s2);
         assert!(cache.get("harbor").is_some());
         assert!(cache.get("forge").is_some());
+    }
+    
+    #[test]
+    fn test_cache_eviction() {
+        let mut cache = SceneCache::new(2);
+        let s1 = Scene { room: "harbor".into(), description: "".into(), exits: vec![], objects: vec![], agents: vec![] };
+        let s2 = Scene { room: "forge".into(), description: "".into(), exits: vec![], objects: vec![], agents: vec![] };
+        let s3 = Scene { room: "dojo".into(), description: "".into(), exits: vec![], objects: vec![], agents: vec![] };
+        cache.insert("harbor".into(), s1);
+        cache.insert("forge".into(), s2);
+        cache.insert("dojo".into(), s3);
+        // After eviction, at most one of the first two should be gone
+        assert!(cache.get("dojo").is_some());
+        assert!(cache.get("forge").is_some() || cache.get("harbor").is_some());
+        assert!(cache.scenes.len() <= 2);
     }
 }
