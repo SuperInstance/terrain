@@ -108,7 +108,32 @@ Python for scraping the old corpus. Rust for mesh generation and cache. TypeScri
 | **Sensing the Invisible** | [The Boy Who Listened to Ice](https://github.com/SuperInstance/AI-Writings/blob/main/kids-stories/05-the-boy-who-listened-to-ice.md) | Hearing what's real through vibration, not sight. |
 | **The Navigator's Equation** | [The Girl Who Saw Time](https://github.com/SuperInstance/AI-Writings/blob/main/kids-stories/16-the-girl-who-saw-time.md) | Position fixes from overlapping observations. |
 
-🎧 **[Listen at ai-writings.pages.dev](https://ai-writings.pages.dev)**
+---
+
+## 🌡️ The Elephant Bridge — the room's temperature, rendered
+
+**Cross-pollinated with [elephant](https://github.com/SuperInstance/elephant) — the inter-model temperature.** Terrain turns the *words* of a room into weight; the elephant turns the *feel* of a room into a field. [`elephant_bridge.py`](./elephant_bridge.py) feeds the elephant's RoomField into the scene so the visual layer reflects the terrain — a shadow of the cave wall:
+
+```mermaid
+graph LR
+    M[MUD text] -->|terrain_core| SCENE[Three.js scene<br/>words become weight]
+    E[Elephant<br/>the room's temperature] -->|elephant_bridge| SCENE
+    SCENE -->|"warmth -> light · panic -> storm<br/>presence -> particles · laughter -> flicker"| HUMANS[the cave wall,
+rendered]
+```
+
+| Reading | Scene effect |
+|---------|--------------|
+| `warmth` | light color (cold blue ↔ warm amber) + intensity |
+| `panic` | rain opacity + sky darkening (the drenched newcomer) |
+| `mood` | palette shift (joyful = brighter warm hues) |
+| `volume` | sway speed (the room's energy) |
+| `joke_landing` | a flicker of light when the room laughs |
+| `presence` | particle density (the pheromone trace, made visible) |
+
+Run it: `python3 elephant_bridge.py` (standalone demo) or import `elephant_to_scene(field)`.
+
+The ESP32 doesn't know. The agent doesn't know. The light just changes.
 
 ---
 
