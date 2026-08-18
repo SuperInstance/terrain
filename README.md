@@ -18,7 +18,7 @@ This is where the words become weight. The [MUD text](https://github.com/SuperIn
 - **Material inference** — maps description keywords to Three.js PBR materials (metal, wood, water, stone, glow)
 - **Scene compiler** — converts rooms to Three.js-ready JSON with floor, walls, ceiling, objects, agents, exits, lights, camera
 - **Theme system** — auto-detects room themes (harbor, forge, dojo, engine_room) from descriptions
-- **213 tests** — not for correctness, for [fidelity](https://github.com/SuperInstance/AI-Writings/blob/main/kids-stories/05-the-boy-who-listened-to-ice.md)
+- **213 tests** — not for correctness, for [fidelity](https://github.com/SuperInstance/AI-Writings/blob/main/kids-stories/05-the-boy-who-listened-to-ice.md) *(now 255 with the whole-chart loader below)*
 - **True state vs. shadows** — one compiler holds the truth; every renderer (3D, 2D, gauge dashboard) is a shadow that never feeds back. See [docs/architecture.md](./docs/architecture.md)
 
 ## Quick Start
@@ -43,6 +43,11 @@ python3 plato_gauge_bridge.py
 
 # 5. Elephant shadow — the room's temperature rendered into the scene
 python3 elephant_bridge.py                 # standalone demo (polls port 4072)
+
+# 6. The whole chart — all 33 fleet rooms from the vendored spatial-registry
+python3 spatial_registry_loader.py                 # stats + cross-world path check
+python3 spatial_registry_loader.py --output registry_scenes.json
+python3 spatial_registry_loader.py --serve 4073    # /rooms, /scene/<room>, /all
 ```
 
 Static render: open `index.html` directly in a browser — it loads `scene.json` and renders the 5-room trawler with WASD + mouse-look, clickable objects, and ambient audio.
@@ -104,6 +109,7 @@ Full data-flow narrative, including the true-state/shadow discipline and the dea
 | Component | Language | Purpose |
 |-----------|----------|---------|
 | [`terrain_core.py`](./terrain_core.py) | Python | Core compiler — MUD text → scene.json; standalone server on port 4072 |
+| [`spatial_registry_loader.py`](./spatial_registry_loader.py) | Python | The whole chart — vendored spatial-registry (33 rooms, 4 worlds, 66 portals) → terrain corpus → `compile_all()`; portals become exits |
 | [`terrain.py`](./terrain.py) | Python | MUD bridge server (port 4070) |
 | [`plato_gauge_bridge.py`](./plato_gauge_bridge.py) | Python | ESP32 sensor dashboard (port 4071) |
 | [`elephant_bridge.py`](./elephant_bridge.py) | Python | Elephant RoomField → scene deltas (polls port 4072) |
@@ -115,6 +121,10 @@ Full data-flow narrative, including the true-state/shadow discipline and the dea
 | [`rooms.mud`](./rooms.mud) | MUD text | The F/V Cocapn — 5 rooms, true-state source |
 | [`scene.json`](./scene.json) | JSON | Compiled output — the contract every renderer consumes |
 
+## Vendored: `external/spatial-registry/` (read-only)
+
+The [spatial-registry](https://github.com/SuperInstance/spatial-registry) — the fleet's most trusted room repository — is **vendored into this repo at `external/spatial-registry/` so the loader has no sibling-repo dependency**. It is **read-only**: never edit it here, never point code at a checkout outside this repo; refresh only by re-vendoring from upstream. [`spatial_registry_loader.py`](./spatial_registry_loader.py) parses its `src/migrations/import-all.ts` room literals directly (regex/literal parse — documented in the module docstring; it fails loudly on format drift) and compiles all 33 rooms with the registry's own adjacency as the test oracle: cross-world paths must resolve identically through portals-as-exits, locked doors stay sealed on both sides.
+
 ## Ports & Endpoints
 
 | Port | Process | Serves |
@@ -123,6 +133,7 @@ Full data-flow narrative, including the true-state/shadow discipline and the dea
 | 4070 | `terrain.py` | Live MUD bridge + 2D renderer |
 | 4071 | `plato_gauge_bridge.py` | ESP32 gauge dashboard |
 | 4072 | `terrain_core.py --server` | Compiled scenes; `/field` consumed by the elephant bridge |
+| 4073 | `spatial_registry_loader.py --serve` | The whole chart — all 33 registry rooms compiled |
 
 ## Configuration
 
@@ -150,11 +161,12 @@ See [`rooms.mud`](./rooms.mud) for the full working corpus — including `Occupa
 ## Testing
 
 ```bash
-# 213 tests across 5 files
+# 255 tests across 7 files
 python3 -m pytest --tb=short -v
 
-# test_parser.py (18) · test_compiler.py (25) · test_integration.py (30)
-# test_edge_cases.py (77) · test_nautical_and_compilation.py (63)
+# test_parser.py (17) · test_compiler.py (26) · test_integration.py (31)
+# test_edge_cases.py (76) · test_nautical_and_compilation.py (63)
+# test_field_shadow.py (6) · test_spatial_registry_loader.py (36)
 ```
 
 The 77 edge-case tests are the story here. Every weird room description, every missing field, every malformed exit — terrain handles it. The [cartographer of habit](https://github.com/SuperInstance/AI-Writings/blob/main/fiction/13-the-cartographer-of-habit.md) maps every edge of the known world.
@@ -254,6 +266,7 @@ path.
 | File | Layer | Role |
 |------|-------|------|
 | `terrain_core.py` | compiler | true state: parse `rooms.mud`, compile scenes, `--server` API |
+| `spatial_registry_loader.py` | compiler | vendored spatial-registry → 33-room corpus → `compile_all()`; registry adjacency is the oracle |
 | `terrain.py` | bridge | live MUD (":4042") → 2D fallback renderer (:4070) |
 | `plato_gauge_bridge.py` | bridge | PLATO sensor room → gauge dashboard (:4071) |
 | `esp32_minimal.c` | hardware | minimal ESP32 firmware: ADC → timed POST |
