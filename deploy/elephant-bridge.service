@@ -1,0 +1,33 @@
+[Unit]
+Description=Terrain elephant bridge — field → light shadow
+After=network.target
+StartLimitBurst=5
+StartLimitIntervalSec=60
+
+[Service]
+Type=simple
+WorkingDirectory=/home/eileen/projects/terrain
+
+ExecStart=/usr/bin/python3 elephant_bridge.py --poll http://127.0.0.1:4073/field --interval 2 --post-to http://127.0.0.1:4072/field
+Restart=always
+RestartSec=3
+MemoryMax=64M
+MemoryHigh=48M
+CPUQuota=50%
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=read-only
+ReadWritePaths=
+PrivateTmp=true
+PrivateDevices=true
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+RestrictNamespaces=true
+LockPersonality=true
+RestrictRealtime=true
+RestrictSUIDSGID=true
+RemoveIPC=true
+
+[Install]
+WantedBy=default.target

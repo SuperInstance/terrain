@@ -1,0 +1,33 @@
+[Unit]
+Description=Terrain core — compiled scenes server (:4072)
+After=network.target
+StartLimitBurst=5
+StartLimitIntervalSec=60
+
+[Service]
+Type=simple
+WorkingDirectory=/home/eileen/projects/terrain
+
+ExecStart=/usr/bin/python3 terrain_core.py --server
+Restart=always
+RestartSec=3
+MemoryMax=128M
+MemoryHigh=96M
+CPUQuota=50%
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=read-only
+ReadWritePaths=
+PrivateTmp=true
+PrivateDevices=true
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+RestrictNamespaces=true
+LockPersonality=true
+RestrictRealtime=true
+RestrictSUIDSGID=true
+RemoveIPC=true
+
+[Install]
+WantedBy=default.target

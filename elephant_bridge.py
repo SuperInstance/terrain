@@ -105,6 +105,10 @@ def fetch_field(endpoint: Optional[str] = None) -> Dict[str, float]:
         data = json.load(r)
     if "dials" not in data and "warmth" not in data:
         raise ValueError(f"unexpected field shape from {url}: {list(data)[:5]}")
+    # a quiet room (no events yet) reports warmth: null — render it neutral,
+    # not as an error: a cold room is not a dead room.
+    if data.get("warmth") is None:
+        data["warmth"] = 0.0
     return data
 
 
