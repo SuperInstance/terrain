@@ -18,7 +18,56 @@ This is where the words become weight. The [MUD text](https://github.com/SuperIn
 - **Material inference** — maps description keywords to Three.js PBR materials (metal, wood, water, stone, glow)
 - **Scene compiler** — converts rooms to Three.js-ready JSON with floor, walls, ceiling, objects, agents, exits, lights, camera
 - **Theme system** — auto-detects room themes (harbor, forge, dojo, engine_room) from descriptions
-- **150 tests** — not for correctness, for [fidelity](https://github.com/SuperInstance/AI-Writings/blob/main/kids-stories/05-the-boy-who-listened-to-ice.md)
+- **213 tests** — not for correctness, for [fidelity](https://github.com/SuperInstance/AI-Writings/blob/main/kids-stories/05-the-boy-who-listened-to-ice.md)
+- **True state vs. shadows** — one compiler holds the truth; every renderer (3D, 2D, gauge dashboard) is a shadow that never feeds back. See [docs/architecture.md](./docs/architecture.md)
+
+## Quick Start
+
+```bash
+# 1. Compile rooms.mud into scene.json (one-shot)
+python3 terrain_core.py rooms.mud          # writes scene.json (all 5 rooms)
+
+# 2. Serve the compiled scenes + live API (port 4072)
+python3 terrain_core.py --server
+#   http://localhost:4072/            → status + room list
+#   http://localhost:4072/scene/galley → one room's compiled scene
+#   http://localhost:4072/all          → every room, compiled
+
+# 3. Bridge a running MUD server (port 4042) for live 2D rendering (port 4070)
+python3 terrain.py
+#   http://localhost:4070/        → terrain.html fallback renderer
+#   http://localhost:4070/api/scene → current room state from the MUD
+
+# 4. ESP32 gauge dashboard (port 4071, reads the PLATO room)
+python3 plato_gauge_bridge.py
+
+# 5. Elephant shadow — the room's temperature rendered into the scene
+python3 elephant_bridge.py                 # standalone demo (polls port 4072)
+```
+
+Static render: open `index.html` directly in a browser — it loads `scene.json` and renders the 5-room trawler with WASD + mouse-look, clickable objects, and ambient audio.
+
+### Programmatic use
+
+```python
+from terrain_core import TerrainCore, load_mud_file, generate_all_scenes
+
+core = TerrainCore("rooms.mud")            # parse + hold the true state
+core.list_rooms()                          # ['wheelhouse', 'galley', ...]
+scene = core.compile("engine_room")        # Three.js-ready dict
+all_scenes = core.compile_all()            # every room, compiled
+
+rooms, objects = load_mud_file("rooms.mud")
+scenes = generate_all_scenes(rooms, objects)  # pure-function form
+```
+
+```python
+from elephant_bridge import elephant_to_scene, field_to_light
+
+field_to_light(0.8)                        # {'color': [0.96, 0.67, 0.45], 'intensity': 1.11}
+deltas = elephant_to_scene({"warmth": -0.7, "dials": {"panic": 0.9}})
+# {'light': ..., 'weather': {'rain_opacity': 0.9, 'sky_darkening': 0.135}, ...}
+```
 
 ## Architecture
 
@@ -48,18 +97,42 @@ MUD text files (.mud)
  └─────────────────┘
 ```
 
+Full data-flow narrative, including the true-state/shadow discipline and the deadband chain: **[docs/architecture.md](./docs/architecture.md)**.
+
 ## Components
 
 | Component | Language | Purpose |
 |-----------|----------|---------|
-| [`terrain_core.py`](./terrain_core.py) | Python | Core compiler — MUD text → scene.json |
+| [`terrain_core.py`](./terrain_core.py) | Python | Core compiler — MUD text → scene.json; standalone server on port 4072 |
 | [`terrain.py`](./terrain.py) | Python | MUD bridge server (port 4070) |
 | [`plato_gauge_bridge.py`](./plato_gauge_bridge.py) | Python | ESP32 sensor dashboard (port 4071) |
+| [`elephant_bridge.py`](./elephant_bridge.py) | Python | Elephant RoomField → scene deltas (polls port 4072) |
 | [`index.html`](./index.html) | JavaScript | Three.js 3D renderer |
 | [`terrain.html`](./terrain.html) | JavaScript | Canvas 2D fallback |
 | [`terrain.ts`](./terrain.ts) | TypeScript | WebGPU-ready renderer class |
 | [`terrain.rs`](./terrain.rs) | Rust | Scene cache + parser |
-| [`esp32_minimal.c`](./esp32_minimal.c) | C | ESP32 firmware — 4 ADC channels at 1kHz |
+| [`esp32_minimal.c`](./esp32_minimal.c) | C | ESP32 firmware — 4 ADC channels, 24-byte packed POST payload |
+| [`rooms.mud`](./rooms.mud) | MUD text | The F/V Cocapn — 5 rooms, true-state source |
+| [`scene.json`](./scene.json) | JSON | Compiled output — the contract every renderer consumes |
+
+## Ports & Endpoints
+
+| Port | Process | Serves |
+|------|---------|--------|
+| 4042 | mud-engine (external) | Room state — terrain.py connects as `scumm_agent` |
+| 4070 | `terrain.py` | Live MUD bridge + 2D renderer |
+| 4071 | `plato_gauge_bridge.py` | ESP32 gauge dashboard |
+| 4072 | `terrain_core.py --server` | Compiled scenes; `/field` consumed by the elephant bridge |
+
+## Configuration
+
+Everything is constants at the top of each file — no config files, no env vars required:
+
+- `terrain.py`: `MUD = "http://localhost:4042"`, `PORT = 4070`
+- `terrain_core.py`: `PORT = 4072`, `MUD_FILE = rooms.mud` (sibling of the script)
+- `plato_gauge_bridge.py`: `PLATO = "https://plato.purplepincher.org"`, `ROOM = "esp32-engine"`, `HISTORY = 100`
+- `elephant_bridge.py`: `ELEPHANT_ENDPOINT = "http://127.0.0.1:4072/field"`, palette anchors `COLD_AMBER` / `WARM_AMBER`
+- `esp32_minimal.c`: `SENSOR_CHANNELS` (4), `UPDATE_HZ` (10), `ADC_MAX` (4095); payload pinned to 24 bytes by `_Static_assert`
 
 ## MUD Room Format
 
@@ -72,13 +145,16 @@ Theme: engine_room
 Floor: metal
 ```
 
+See [`rooms.mud`](./rooms.mud) for the full working corpus — including `Occupants:` lines and object prototypes.
+
 ## Testing
 
 ```bash
-# 150 tests across 4 files
+# 213 tests across 5 files
 python3 -m pytest --tb=short -v
 
-# test_parser.py (18) · test_compiler.py (25) · test_integration.py (30) · test_edge_cases.py (77)
+# test_parser.py (18) · test_compiler.py (25) · test_integration.py (30)
+# test_edge_cases.py (77) · test_nautical_and_compilation.py (63)
 ```
 
 The 77 edge-case tests are the story here. Every weird room description, every missing field, every malformed exit — terrain handles it. The [cartographer of habit](https://github.com/SuperInstance/AI-Writings/blob/main/fiction/13-the-cartographer-of-habit.md) maps every edge of the known world.
@@ -118,8 +194,7 @@ Python for scraping the old corpus. Rust for mesh generation and cache. TypeScri
 graph LR
     M[MUD text] -->|terrain_core| SCENE[Three.js scene<br/>words become weight]
     E[Elephant<br/>the room's temperature] -->|elephant_bridge| SCENE
-    SCENE -->|"warmth -> light · panic -> storm<br/>presence -> particles · laughter -> flicker"| HUMANS[the cave wall,
-rendered]
+    SCENE -->|"warmth -> light · panic -> storm<br/>presence -> particles · laughter -> flicker"| HUMANS[the cave wall, rendered]
 ```
 
 | Reading | Scene effect |
@@ -137,4 +212,62 @@ The ESP32 doesn't know. The agent doesn't know. The light just changes.
 
 ---
 
+## ⚓ Fleet Context
+
+Terrain is one projection of the Cocapn fleet's shared room state:
+
+- The **MUD engine** (port 4042) is the source of live truth for agents.
+- **terrain_core.py** is the compiler of record — `scene.json` is the contract every renderer consumes, in any language.
+- The **[elephant](https://github.com/SuperInstance/elephant)** reads the room's field; terrain renders only a *shadow* of it. The scene never becomes the source of truth — a shadow that fed back would be a lie the room tells about itself.
+- When a shadow's underlying truth drifts past its deadband, the change **rings up the chain of command** — room host → foreman → captain — so only real movement wakes the officer of the watch. The discipline is documented in [docs/architecture.md](./docs/architecture.md#the-deadband-chain).
+
+---
+
 *Apache 2.0 — Cocapn fleet infrastructure · Built between watches on the F/V Eileen, Gulf of Alaska, 2026.*
+
+## The sensor chain (hardware → browser)
+
+Terrain isn't only for MUD text. The same true-state/shadow discipline runs
+from a real ESP32 all the way to a browser gauge:
+
+```
+ESP32 (esp32_minimal.c)          PLATO room                Browser
+  ADC read ──HTTP POST──►  calibration + extrapolation ──► plato_gauge_bridge.py
+  raw {value, t_minus}      (the truth-holder)              :4071 dashboard
+        │                                                        │
+        │        The ESP32 doesn't know about dashboards.         │
+        │        It just sends raw data on time.                  │
+        ▼                                                        ▼
+  and the chain of command rings upward when a value crosses its
+  deadband: sensor → host → foreman → captain. Nobody polls; the
+  deviation does the talking.
+```
+
+Each layer knows only its neighbor's contract. The C file knows HTTP POST.
+The bridge knows calibrated values. The browser knows gauges. Nothing
+double-books the truth — `TerrainCore` is the only state-holder in the
+compile path, and the PLATO room is the only state-holder in the sensor
+path.
+
+## File map
+
+| File | Layer | Role |
+|------|-------|------|
+| `terrain_core.py` | compiler | true state: parse `rooms.mud`, compile scenes, `--server` API |
+| `terrain.py` | bridge | live MUD (":4042") → 2D fallback renderer (:4070) |
+| `plato_gauge_bridge.py` | bridge | PLATO sensor room → gauge dashboard (:4071) |
+| `esp32_minimal.c` | hardware | minimal ESP32 firmware: ADC → timed POST |
+| `elephant_bridge.py` | bridge | elephant `RoomField` → scene lighting/mood |
+| `rooms.mud` | data | the 5-room trawler demo source |
+| `terrain.rs`, `terrain.ts` | ports | the compiler, re-voiced in Rust and TypeScript |
+| `index.html` / `terrain.html` | render | Three.js 3D view / 2D fallback |
+
+## Fleet context
+
+Terrain is the fleet's eyes — the place where the elephant's readings
+become weather in a scene (fight in the room → storms outside the
+portholes, per the zeitgeist thesis). It pairs with `mud-engine` (room
+source of truth), `elephant` (the field it renders), and `eisenstein`
+(the hex room map that decides which rooms cut against each other).
+The deadband architecture comes from inside-the-deadband fiction and
+is enforced in `confidence-cascade` on the TS side.
