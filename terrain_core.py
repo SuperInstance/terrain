@@ -742,46 +742,85 @@ def main():
 # STANDALONE SERVER
 # ============================================================================
 
+import http.server
+
+# The latest field shadow, as POSTed by the bridge. One dict, served as-is.
+# A shadow is NEVER merged into the compiled truth above (the compile
+# contract: rooms.mud -> scene JSON owns the scene; /field only tints it).
+FIELD_SHADOW: Dict = {}
+
+
+class TerrainCoreHandler(http.server.BaseHTTPRequestHandler):
+    """Serves the compiled scenes (truth) and the field shadow (never truth)."""
+
+    compiler = None  # bound per-server by make_server()
+
+    def _json(self, d, code=200):
+        self.send_response(code)
+        self.send_header("Content-Type", "application/json")
+        self.send_header("Access-Control-Allow-Origin", "*")
+        self.end_headers()
+        self.wfile.write(json.dumps(d).encode())
+
+    def do_GET(self):
+        p = self.path
+        if p == "/":
+            self._json({"status": "terrain_core", "rooms": self.compiler.list_rooms()})
+        elif p == "/rooms":
+            self._json({"rooms": self.compiler.list_rooms()})
+        elif p == "/field":
+            self._json(dict(FIELD_SHADOW))
+        elif p.startswith("/scene/"):
+            room_name = p.split("/scene/")[1]
+            scene = self.compiler.compile(room_name)
+            if scene:
+                self._json(scene)
+            else:
+                self._json({"error": "room not found"}, 404)
+        elif p == "/all":
+            self._json(self.compiler.compile_all())
+        else:
+            self.send_error(404)
+
+    def do_POST(self):
+        if self.path != "/field":
+            self.send_error(404)
+            return
+        length = int(self.headers.get("Content-Length") or 0)
+        body = self.rfile.read(length) if length > 0 else b""
+        try:
+            deltas = json.loads(body.decode("utf-8"))
+            if not isinstance(deltas, dict):
+                raise ValueError("field deltas must be a JSON object")
+        except (ValueError, UnicodeDecodeError):
+            self._json({"error": "invalid field JSON"}, 400)
+            return
+        FIELD_SHADOW.clear()
+        FIELD_SHADOW.update(deltas)
+        self._json({"status": "ok", "shadow": True})
+
+
+def make_server(port: int = 0, mud_file: Optional[str] = None) -> http.server.HTTPServer:
+    """Build the terrain core HTTP server. port=0 binds an ephemeral port (tests)."""
+    if mud_file is None:
+        mud_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), "rooms.mud")
+
+    class Handler(TerrainCoreHandler):
+        pass
+
+    Handler.compiler = TerrainCore(mud_file if os.path.exists(mud_file) else None)
+    return http.server.HTTPServer(("0.0.0.0", port), Handler)
+
+
 if __name__ == "__main__":
     import sys
     if len(sys.argv) > 1 and sys.argv[1] not in ('--server', 'server'):
         main()
     else:
-        import http.server
-
         PORT = 4072
-        MUD_FILE = os.path.join(os.path.dirname(__file__), "rooms.mud")
-
-        class TerrainCoreHandler(http.server.BaseHTTPRequestHandler):
-            compiler = TerrainCore(MUD_FILE if os.path.exists(MUD_FILE) else None)
-
-            def _json(self, d, code=200):
-                self.send_response(code)
-                self.send_header("Content-Type", "application/json")
-                self.send_header("Access-Control-Allow-Origin", "*")
-                self.end_headers()
-                self.wfile.write(json.dumps(d).encode())
-
-            def do_GET(self):
-                p = self.path
-                if p == "/":
-                    self._json({"status": "terrain_core", "rooms": self.compiler.list_rooms()})
-                elif p == "/rooms":
-                    self._json({"rooms": self.compiler.list_rooms()})
-                elif p.startswith("/scene/"):
-                    room_name = p.split("/scene/")[1]
-                    scene = self.compiler.compile(room_name)
-                    if scene:
-                        self._json(scene)
-                    else:
-                        self._json({"error": "room not found"}, 404)
-                elif p == "/all":
-                    self._json(self.compiler.compile_all())
-                else:
-                    self.send_error(404)
-
         print(f"🔮 Terrain Core compiler running on port {PORT}")
-        print(f"   MUD file: {MUD_FILE}")
+        print(f"   MUD file: rooms.mud")
         print(f"   API: http://localhost:{PORT}/scene/{{room_name}}")
         print(f"   All rooms: http://localhost:{PORT}/all")
-        http.server.HTTPServer(("0.0.0.0", PORT), TerrainCoreHandler).serve_forever()
+        print(f"   Field shadow: http://localhost:{PORT}/field")
+        make_server(PORT).serve_forever()

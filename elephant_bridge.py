@@ -20,7 +20,15 @@ doesn't know. The light just changes — and everyone in the room feels
 it, the way disco lights going off and fluorescents coming on make
 people start closing their tabs without thinking about it.
 
-Run standalone (polls a running elephant room) or import as a module:
+Run standalone:
+    elephant_bridge.py --demo                          synthetic fields, no elephant
+    elephant_bridge.py --poll http://127.0.0.1:4073/field \
+        --interval 2 --post-to http://127.0.0.1:4072/field
+                                                        live: fetch the field,
+                                                        POST the rendered deltas
+                                                        to terrain_core's shadow
+
+or import as a module:
     from elephant_bridge import elephant_to_scene
     scene["light"]["color"] = elephant_to_scene(field)["light"]
 
@@ -30,6 +38,7 @@ from __future__ import annotations
 
 import json
 import math
+import time
 import urllib.request
 from typing import Any, Dict, Optional
 
@@ -99,8 +108,44 @@ def fetch_field(endpoint: Optional[str] = None) -> Dict[str, float]:
     return data
 
 
-if __name__ == "__main__":
-    # Standalone demo: render three fields into scenes.
+def post_deltas(url: str, deltas: Dict[str, Any]) -> None:
+    """POST scene deltas to terrain_core's /field shadow endpoint."""
+    req = urllib.request.Request(
+        url,
+        data=json.dumps(deltas).encode("utf-8"),
+        headers={"Content-Type": "application/json"},
+        method="POST",
+    )
+    with urllib.request.urlopen(req, timeout=5) as r:
+        r.read()
+
+
+def poll_once(poll_url: str, post_to: str) -> Dict[str, Any]:
+    """One poll cycle: fetch the field, render it, POST the deltas."""
+    field = fetch_field(poll_url)
+    deltas = elephant_to_scene(field)
+    post_deltas(post_to, deltas)
+    return deltas
+
+
+def poll_loop(poll_url: str, interval: float, post_to: str) -> None:
+    """Poll forever: field -> scene deltas -> the terrain's /field shadow."""
+    print(f"🐘 bridge polling {poll_url} every {interval}s -> {post_to}")
+    while True:
+        try:
+            deltas = poll_once(poll_url, post_to)
+            light = deltas["light"]
+            print(f"  warmth {deltas['shadow_of']['warmth']:+.2f}  "
+                  f"light {light['color']} intensity {light['intensity']}  "
+                  f"rain {deltas['weather']['rain_opacity']}")
+        except Exception as exc:
+            # cold room != dead room: keep the last shadow, keep polling
+            print(f"  field unreachable ({exc}); retrying")
+        time.sleep(interval)
+
+
+def demo() -> None:
+    """Synthetic demo: render three fields into scenes, no elephant needed."""
     print("=== THE ROOM'S TEMPERATURE, RENDERED ===")
     for label, field in [
         ("warm laughing Tap",
@@ -127,3 +172,27 @@ if __name__ == "__main__":
               f"sway {scene['sway_speed']}")
     print("\nThe ESP32 doesn't know. The agent doesn't know. "
           "The light just changes.")
+
+
+if __name__ == "__main__":
+    import argparse
+
+    parser = argparse.ArgumentParser(
+        description="the room's temperature, rendered into the scene")
+    parser.add_argument("--demo", action="store_true",
+                        help="render three synthetic fields and exit (default "
+                             "when --poll is not given)")
+    parser.add_argument("--poll", metavar="URL",
+                        help="poll a field endpoint "
+                             "(e.g. http://127.0.0.1:4073/field)")
+    parser.add_argument("--interval", type=float, default=2.0,
+                        help="poll interval in seconds (default: 2)")
+    parser.add_argument("--post-to", default="http://127.0.0.1:4072/field",
+                        help="where to POST the rendered deltas "
+                             "(default: http://127.0.0.1:4072/field)")
+    args = parser.parse_args()
+
+    if args.poll:
+        poll_loop(args.poll, args.interval, args.post_to)
+    else:
+        demo()

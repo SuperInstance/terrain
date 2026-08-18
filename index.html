@@ -54,6 +54,14 @@ let agentMarkers = [];
 let raycaster, mouse;
 let isPointerLocked = false;
 
+// Field shadow state (fetched from /field every 2s; guarded — cold room != dead room)
+let shadowLight = null;          // the main light the field tints
+let baseIntensity = 0.8;         // its compiled intensity
+let baseBg = new THREE.Color(0x0a0a1a);  // compiled sky, before darkening
+let rain = null, rainMat = null; // storm overlay (weather.rain_opacity)
+let motes = null;                // presence particles (particles)
+let jokeFlickerUntil = 0;        // light flicker window (joke_flicker)
+
 // Scene state
 const state = {
     room: 'unknown',
@@ -115,7 +123,11 @@ function init() {
     
     // Start
     animate();
-    
+
+    // Field shadow: poll every 2s, apply light/weather/particles. The page
+    // must not break when the elephant is down — pollField swallows all.
+    setInterval(pollField, FIELD_POLL_MS);
+
     // Load initial room (try static scene.json first, then HTTP server)
     loadRoomFromJSON('wheelhouse').catch(() => loadRoomFromServer('wheelhouse'));
 }
@@ -200,11 +212,16 @@ function buildScene(data) {
     roomObjects = [];
     exitMarkers = [];
     agentMarkers = [];
-    
+    // Shadow overlays died with the cleared scene; the next poll rebuilds them
+    shadowLight = null;
+    rain = null; rainMat = null;
+    motes = null;
+
     // Background color
     const bgColor = new THREE.Color(data.theme?.bg || '#0a0a1a');
     scene.background = bgColor;
     scene.fog.color = bgColor;
+    baseBg = bgColor.clone();
     
     // =========================================================================
     // FLOOR
@@ -290,6 +307,8 @@ function buildScene(data) {
     mainLight.position.set(0, 6, 0);
     mainLight.castShadow = true;
     scene.add(mainLight);
+    shadowLight = mainLight;      // the field shadow tints this light
+    baseIntensity = mainLight.intensity;
     
     // Hemisphere for fill
     const hemi = new THREE.HemisphereLight(0x606080, 0x303040, 0.3);
@@ -657,6 +676,133 @@ function updateLights() {
 }
 
 // ============================================================================
+// FIELD SHADOW — the room's temperature, applied live (all guarded)
+// ============================================================================
+
+const FIELD_URL = '/field';
+const FIELD_POLL_MS = 2000;
+const RAIN_DROPS = 600;
+const MOTE_MAX = 400;
+
+async function pollField() {
+    try {
+        const resp = await fetch(FIELD_URL);
+        if (!resp.ok) return;
+        const shadow = await resp.json();
+        if (shadow && typeof shadow === 'object' && Object.keys(shadow).length > 0) {
+            applyFieldShadow(shadow);
+        }
+    } catch (e) {
+        // the elephant is down; keep the last shadow — cold room != dead room
+    }
+}
+
+function ensureRain() {
+    if (rain) return rain;
+    const geom = new THREE.BufferGeometry();
+    const positions = new Float32Array(RAIN_DROPS * 3);
+    for (let i = 0; i < RAIN_DROPS; i++) {
+        positions[i * 3] = (Math.random() - 0.5) * 20;
+        positions[i * 3 + 1] = Math.random() * 8;
+        positions[i * 3 + 2] = (Math.random() - 0.5) * 20;
+    }
+    geom.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+    rainMat = new THREE.PointsMaterial({
+        color: 0x88aacc, size: 0.08, transparent: true,
+        opacity: 0, depthWrite: false,
+    });
+    rain = new THREE.Points(geom, rainMat);
+    rain.visible = false;
+    scene.add(rain);
+    return rain;
+}
+
+function ensureMotes() {
+    if (motes) return motes;
+    const geom = new THREE.BufferGeometry();
+    const positions = new Float32Array(MOTE_MAX * 3);
+    for (let i = 0; i < MOTE_MAX; i++) {
+        positions[i * 3] = (Math.random() - 0.5) * 18;
+        positions[i * 3 + 1] = Math.random() * 6 + 0.5;
+        positions[i * 3 + 2] = (Math.random() - 0.5) * 18;
+    }
+    geom.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+    geom.setDrawRange(0, 0);
+    const mat = new THREE.PointsMaterial({
+        color: 0xffd7aa, size: 0.07, transparent: true,
+        opacity: 0.7, depthWrite: false,
+    });
+    motes = new THREE.Points(geom, mat);
+    motes.visible = false;
+    scene.add(motes);
+    return motes;
+}
+
+function applyFieldShadow(shadow) {
+    try { // light.color / light.intensity
+        const c = shadow.light?.color;
+        if (shadowLight && Array.isArray(c) && c.length >= 3) {
+            shadowLight.color.setRGB(
+                Math.max(0, Math.min(1, +c[0] || 0)),
+                Math.max(0, Math.min(1, +c[1] || 0)),
+                Math.max(0, Math.min(1, +c[2] || 0)));
+        }
+        if (shadowLight && typeof shadow.light?.intensity === 'number') {
+            baseIntensity = shadow.light.intensity;
+        }
+    } catch (e) { }
+
+    try { // weather.rain_opacity / sky_darkening
+        const w = shadow.weather || {};
+        const rainOp = Math.max(0, Math.min(1, +w.rain_opacity || 0));
+        const dark = Math.max(0, Math.min(0.9, +w.sky_darkening || 0));
+        scene.background.copy(baseBg).multiplyScalar(1 - dark);
+        scene.fog.color.copy(scene.background);
+        const r = ensureRain();
+        rainMat.opacity = rainOp * 0.8;
+        r.visible = rainOp > 0.01;
+    } catch (e) { }
+
+    try { // particles (presence, made visible)
+        const n = Math.max(0, Math.min(MOTE_MAX, shadow.particles | 0));
+        const m = ensureMotes();
+        m.geometry.setDrawRange(0, n);
+        m.visible = n > 0;
+    } catch (e) { }
+
+    try { // joke_flicker — the room laughs, the light flickers
+        if (+shadow.joke_flicker > 0.5) {
+            jokeFlickerUntil = performance.now() + 700;
+        }
+    } catch (e) { }
+}
+
+function updateShadow() {
+    try {
+        const t = performance.now();
+        if (rain && rain.visible) {
+            const pos = rain.geometry.attributes.position;
+            for (let i = 0; i < pos.count; i++) {
+                let y = pos.getY(i) - 0.35;
+                if (y < 0) y = 8;
+                pos.setY(i, y);
+            }
+            pos.needsUpdate = true;
+        }
+        if (motes && motes.visible) {
+            motes.rotation.y += 0.0015;
+        }
+        if (shadowLight) {
+            let intensity = baseIntensity;
+            if (t < jokeFlickerUntil) {
+                intensity *= 1.0 + 0.6 * Math.abs(Math.sin(t * 0.045));
+            }
+            shadowLight.intensity = intensity;
+        }
+    } catch (e) { }
+}
+
+// ============================================================================
 // ANIMATION LOOP
 // ============================================================================
 
@@ -671,6 +817,7 @@ function animate(time = 0) {
     updateMovement(dt);
     updateAgents(dt);
     updateLights();
+    updateShadow();
     
     renderer.render(scene, camera);
 }
