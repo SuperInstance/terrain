@@ -4,6 +4,8 @@
 
 > *Every throwaway line someone typed into a MUD editor — "the floor is cracked basalt, moss grows along the west wall" — this repo reads that line. It builds the angle of light that falls through the crack. It generates the moss geometry. It bakes the damp stone reverb. It does not care who is looking. It just is. It waits.*
 
+<p align="center"><img src="assets/images/hero.jpg" alt="Crabs stir the mud into walkable, lit rooms" width="640"></p>
+
 Demo: a 5-room fishing trawler (412 polygons, 17 texture maps) generated from 18 lines of MUD markup. The brass porthole shader adds 4ms render time but looks damn fine.
 
 🎧 **[Listen to related stories](https://ai-writings.pages.dev)**
