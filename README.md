@@ -183,7 +183,7 @@ Python for scraping the old corpus. Rust for mesh generation and cache. TypeScri
 - **[room-render](https://github.com/SuperInstance/room-render)** — the pure function that renders rooms (terrain is its 3D cousin)
 - **[spatial-registry](https://github.com/SuperInstance/spatial-registry)** — the 33 rooms terrain renders
 - **[scummvm-prototype](https://github.com/SuperInstance/scummvm-prototype)** — another visual projection of the same rooms
-- **[officers-quarters](https://github.com/SuperInstance/officers-quarters)** — Phaser projection
+- **[elephant](https://github.com/SuperInstance/elephant)** — Phaser projection
 - **[vessel-agent-system](https://github.com/SuperInstance/vessel-agent-system)** — the real vessel integration
 - **[voxel-logic](https://github.com/SuperInstance/voxel-logic)** — voxel engine, 99.7% tested
 - **[AI-Writings](https://github.com/SuperInstance/AI-Writings/tree/main/prose)** — the creative corpus

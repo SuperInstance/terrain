@@ -14,7 +14,7 @@
 
 The [map that knows it is not the territory](https://github.com/SuperInstance/AI-Writings/blob/main/kids-stories/16-the-girl-who-saw-time.md). A single source of truth for:
 
-- **Room graphs** — all rooms from [Plato's Shell](https://github.com/SuperInstance/platos-shell), [Officers' Quarters](https://github.com/SuperInstance/officers-quarters), [The Tap](https://github.com/SuperInstance/the-tap), and [ScummVM Arcade](https://github.com/SuperInstance/scummvm-arcade)
+- **Room graphs** — all rooms from [Plato's Shell](https://github.com/SuperInstance/platos-shell), [Officers' Quarters](https://github.com/SuperInstance/elephant), [The Tap](https://github.com/SuperInstance/the-tap), and [ScummVM Arcade](https://github.com/SuperInstance/scummvm-arcade)
 - **Coordinate frames** — each project's coordinate system mapped to a shared space
 - **Portal system** — intra-world exits AND cross-world warp links
 - **Pathfinding** — BFS routes that span worlds
@@ -32,7 +32,7 @@ It does not care what the rooms look like. It does not care if they are rendered
 | World | Source Project | Rooms | Coordinate System |
 |-------|---------------|-------|-------------------|
 | Plato's Shell | [platos-shell](https://github.com/SuperInstance/platos-shell) | 12 | Phaser screen → logical grid |
-| Officers' Quarters | [officers-quarters](https://github.com/SuperInstance/officers-quarters) | 12 | Phaser world → logical grid (offset) |
+| Officers' Quarters | [elephant](https://github.com/SuperInstance/elephant) | 12 | Phaser world → logical grid (offset) |
 | The Tap (Rust) | [the-tap](https://github.com/SuperInstance/the-tap) | 3 | D1 room IDs → logical positions |
 | ScummVM BSS | [scummvm-arcade](https://github.com/SuperInstance/scummvm-arcade) | 6 | MUD schema → grid layout |
 
@@ -89,7 +89,7 @@ const path = registry.findPath('tap-bar', 'wheelhouse');
 - **[terrain](https://github.com/SuperInstance/terrain)** — 3D bridge for the same rooms
 - **[scummvm-prototype](https://github.com/SuperInstance/scummvm-prototype)** — first playable, rooms overlap
 - **[the-tap](https://github.com/SuperInstance/the-tap)** — bar rooms connected via cross-world portal
-- **[officers-quarters](https://github.com/SuperInstance/officers-quarters)** — 12 rooms registered here
+- **[elephant](https://github.com/SuperInstance/elephant)** — 12 rooms registered here
 - **[platos-shell](https://github.com/SuperInstance/platos-shell)** — 12 rooms + cross-world portals
 - **[AI-Writings](https://github.com/SuperInstance/AI-Writings/tree/main/prose)** — the creative corpus
 
